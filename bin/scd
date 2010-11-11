@@ -1,0 +1,283 @@
+#!/bin/zsh -if
+# $Id$
+
+emulate -L zsh
+if [[ $(whence -w $0) == *:' 'command ]]; then
+    emulate -R zsh
+    alias return=exit
+    local RUNNING_AS_COMMAND=1
+fi
+
+local DOC='scd -- smart change to a recently used directory
+usage: scd [options] [pattern1 pattern2 ...]
+Go to a directory path that contains all fixed string patterns.  Prefer
+recently visited directories and directories with patterns in their tail
+component.  Display a selection menu in case of multiple matches.
+
+Options:
+  -a, --add         add specified directories to the directory index
+  --unindex         remove specified directories from the index
+  -r, --recursive   applied options --add or --unindex recursively
+  --alias=ALIAS     create alias for the current or specified directory and
+                    store it in ~/.scdalias.zsh
+  --unalias         remove ALIAS definition for the current or specified
+                    directory from ~/.scdalias.zsh
+  -v, --verbose     display directory rank in the selection menu
+  -h, --help        display this message and exit
+'
+
+local SCD_HISTFILE=~/.scdhistory
+local SCD_HISTSIZE=${SCD_HISTSIZE:-5000}
+local SCD_MENUSIZE=${SCD_MENUSIZE:-25}
+local SCD_MEANLIFE=${SCD_MEANLIFE:-86400}
+local SCD_THRESHOLD=${SCD_THRESHOLD:-0.005}
+local SCD_SCRIPT=${SCD_SCRIPT:-}
+local SCD_ALIAS=~/.scdalias.zsh
+
+local ICASE a d m p i tdir maxrank threshold
+local opt_help opt_add opt_unindex opt_recursive opt_verbose
+local opt_alias opt_unalias
+local -A drank dalias
+local dmatching
+
+setopt incappendhistory extendedhistory extendedglob noautonamedirs
+[[ ${+options[histsavebycopy]} == 1 ]] && setopt nohistsavebycopy
+
+# make sure that any old commands are removed from SCD_SCRIPT
+[[ -n "$SCD_SCRIPT" && -s $SCD_SCRIPT ]] && : >| $SCD_SCRIPT
+
+# process command line options
+zmodload -i zsh/zutil
+zmodload -i zsh/datetime
+zparseopts -D -- h=opt_help -help=opt_help \
+    a=opt_add -add=opt_add -unindex=opt_unindex \
+    r=opt_recursive -recursive=opt_recursive \
+    v=opt_verbose -verbose=opt_verbose \
+    -alias:=opt_alias -unalias=opt_unalias \
+    || return $?
+
+if [[ -n $opt_help ]]; then
+    print $DOC
+    return
+fi
+
+# load directory aliases if they exist
+[[ -r $SCD_ALIAS ]] && source $SCD_ALIAS
+
+# define directory alias
+if [[ -n $opt_alias ]]; then
+    if [[ -n $1 && ! -d $1 ]]; then
+	print -u2 "'$1' is not a directory"
+	return 1
+    fi
+    a=${opt_alias[-1]#=}
+    d=$(unfunction -m "*"; cd ${1:-.}; pwd)
+    # alias in the current shell, update alias file if successful
+    hash -d -- $a=$d &&
+    (   
+        umask 077
+        hash -dr
+        [[ -r $SCD_ALIAS ]] && source $SCD_ALIAS
+        hash -d -- $a=$d
+        hash -dL >| $SCD_ALIAS
+    )
+    return $?
+fi
+
+# undefine directory alias
+if [[ -n $opt_unalias ]]; then
+    if [[ -n $1 && ! -d $1 ]]; then
+	print -u2 "'$1' is not a directory"
+	return 1
+    fi
+    a=$(unfunction -m "*"; cd ${1:-.}; print -rP "%~")
+    if [[ $a != [~][^/]## ]]; then
+        return 0
+    fi
+    a=${a#[~]}
+    # unalias in the current shell, update alias file if successful
+    if unhash -d -- $a 2>/dev/null && [[ -r $SCD_ALIAS ]]; then
+        (
+            umask 077
+            hash -dr
+            source $SCD_ALIAS
+            unhash -d -- $a 2>/dev/null &&
+            hash -dL >| $SCD_ALIAS
+        )
+    fi
+    return $?
+fi
+
+# define custom history file
+fc -a -p $SCD_HISTFILE $SCD_HISTSIZE
+
+if [[ -n $opt_add ]]; then
+    for a in ${*:-.}; do
+        if [[ ! -d $a ]]; then
+            print -u 2 "Directory $a does not exist"
+            return 2
+        fi
+        d=$(unfunction -m "*"; cd $a; pwd)
+        print -rs -- $d
+        if [[ -n $opt_recursive ]]; then
+            print -n "scanning ${d} ... "
+            for i in ${d}/**/*(-/N); do
+                print -rs -- $i
+            done
+            print "[done]"
+        fi
+    done
+    return
+fi
+
+# take care of removing entries from the directory index
+if [[ -n $opt_unindex ]]; then
+    if [[ ! -s $SCD_HISTFILE ]]; then
+        return
+    fi
+    # expand existing directories in the argument list
+    for i in {1..$#}; do
+        if [[ -d ${argv[i]} ]]; then
+            argv[i]=$(unfunction -m "*"; cd ${argv[i]}; pwd)
+        fi
+    done
+    m="$(<$SCD_HISTFILE \
+    gawk -v recursive=${opt_recursive} '
+        BEGIN {
+            for (i = 1; i < ARGC; ++i) {
+                argset[ARGV[i]] = 1;
+                delete ARGV[i];
+            }
+        }
+        1 {
+            d = $0;  sub(/^[^;]*;/, "", d);
+            if (d in argset)  next;
+        }
+        recursive {
+            for (a in argset) {
+                if (substr(d, 1, length(a) + 1) == a"/")  next;
+            }
+        }
+        { print $0 }
+        ' ${*:-$PWD} )" || return $?
+    print -nr -- "$m" >| ${SCD_HISTFILE}
+    return
+fi
+
+# self destructive action command
+scd_action() {
+    if [[ $# == 1 ]]; then
+        if [[ -z $SCD_SCRIPT && -n $RUNNING_AS_COMMAND ]]; then
+            print -u2 "Warning: running as command with SCD_SCRIPT undefined."
+        fi
+        [[ -n $SCD_SCRIPT ]] && (umask 077;
+            print -r "cd ${(q)1}" >| $SCD_SCRIPT)
+	[[ -N $SCD_HISTFILE ]] && touch -a $SCD_HISTFILE
+        cd $1
+	# update SCD_HISTFILE unless already done in chpwd hook
+	[[ -N $SCD_HISTFILE ]] || print -rs $PWD
+    fi
+}
+trap 'unfunction scd_action' EXIT
+
+# take care of existing directories
+if  [[ $# == 1 && -d $1 && -x $1 ]]; then
+    scd_action $1
+    return $?
+# take care of exact aliases
+elif  [[ $# == 1 ]] && d=${$(hash -d -m "(#s)$1")#${1}=} && [[ -d $d ]]; then
+    scd_action $d
+    return $?
+fi
+
+[[ "$*" == *[[:upper:]]* ]] || ICASE='(#i)'
+
+# calculate rank for all directories in the history
+[[ -s $SCD_HISTFILE ]] && drank=( ${(f)"$(
+    tail -${SCD_HISTSIZE} $SCD_HISTFILE |
+    awk -v epochseconds=$EPOCHSECONDS -v meanlife=$SCD_MEANLIFE '
+        BEGIN { FS = "[:;]"; }
+	length($0) < 4096 {
+	    pi = 0.01 + exp(1.0 * ($2 - epochseconds) / meanlife);
+            sub(/^[^;]*;/, "");
+            p[$0] += pi;
+        }
+        END { for (di in p)  { print di; print p[di]; } }'
+    )"}
+)
+
+for a; do
+    p=${ICASE}"*${a}*"
+    drank=( ${(kv)drank[(I)${~p}]} )
+done
+
+# build matching directories sorted by rank
+dmatching=( ${(f)"$( for d p in ${(kv)drank}; do print -r -- "$p $d"; done |
+    sort -grk1 | cut -d ' ' -f 2- )"} )
+
+# reduce to exact matches
+# patterns follow each other
+p=${ICASE}"*${(j:*:)argv}*"
+m=( ${(M)dmatching:#${~p}} )
+[[ -d ${m[1]} ]] && dmatching=( $m )
+# last pattern is in the path tail
+p=${ICASE}"*${(j:*:)argv}[^/]#"
+m=( ${(M)dmatching:#${~p}} )
+[[ -d ${m[1]} ]] && dmatching=( $m )
+# all patterns are present in the path tail
+m=( $dmatching )
+for a; do
+    p=${ICASE}"*/[^/]#${a}[^/]#"
+    m=( ${(M)m:#${~p}} )
+done
+[[ -d ${m[1]} ]] && dmatching=( $m )
+# all patterns are in the path tail following each other
+p=${ICASE}"/*${(j:[^/]#:)argv}[^/]#"
+m=( ${(M)dmatching:#${~p}} )
+[[ -d ${m[1]} ]] && dmatching=( $m )
+
+# do not match $HOME or $PWD when run without arguments
+if [[ $# == 0 ]]; then
+    dmatching=( ${dmatching:#(${HOME}|${PWD})} )
+fi
+
+# cut dmatching to $SCD_MENUSIZE existing directories
+m=( )
+for d in $dmatching; do
+    [[ ${#m} == $SCD_MENUSIZE ]] && break
+    [[ -d $d && -x $d ]] && m+=$d
+done
+dmatching=( $m )
+
+# find out maximum rank
+maxrank=0.0
+for d in $dmatching; do
+    [[ ${drank[$d]} -lt maxrank ]] || maxrank=${drank[$d]}
+done
+
+# cut out directories below rank threshold
+threshold=$(( maxrank * SCD_THRESHOLD ))
+dmatching=( ${^dmatching}(Ne:'(( ${drank[$REPLY]} >= threshold ))':) )
+
+case ${#dmatching} in
+(0)
+    print -u2 "no matching directory"
+    return 1
+    ;;
+(1)
+    scd_action $dmatching
+    return $?
+    ;;
+(*)
+    m=( ${(f)"$(unfunction -m "*";
+            for d in ${dmatching}; do
+                cd $d
+                [[ -n $opt_verbose ]] && printf "%.3g " ${drank[$d]}
+                print -P "%~"
+            done)"} )
+    for i in {1..${#m}}; dalias[${m[i]}]=$dmatching[i]
+    select d in ${m}; do
+        scd_action ${dalias[$d]}
+        return $?
+    done
+esac
