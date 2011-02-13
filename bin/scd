@@ -22,6 +22,7 @@ Options:
                     store it in ~/.scdalias.zsh
   --unalias         remove ALIAS definition for the current or specified
                     directory from ~/.scdalias.zsh
+  --list            show matching directories and exit
   -v, --verbose     display directory rank in the selection menu
   -h, --help        display this message and exit
 '
@@ -36,7 +37,7 @@ local SCD_ALIAS=~/.scdalias.zsh
 
 local ICASE a d m p i tdir maxrank threshold
 local opt_help opt_add opt_unindex opt_recursive opt_verbose
-local opt_alias opt_unalias
+local opt_alias opt_unalias opt_list
 local -A drank dalias
 local dmatching
 
@@ -49,11 +50,10 @@ setopt incappendhistory extendedhistory extendedglob noautonamedirs
 # process command line options
 zmodload -i zsh/zutil
 zmodload -i zsh/datetime
-zparseopts -D -- h=opt_help -help=opt_help \
-    a=opt_add -add=opt_add -unindex=opt_unindex \
+zparseopts -D -- a=opt_add -add=opt_add -unindex=opt_unindex \
     r=opt_recursive -recursive=opt_recursive \
-    v=opt_verbose -verbose=opt_verbose \
-    -alias:=opt_alias -unalias=opt_unalias \
+    -alias:=opt_alias -unalias=opt_unalias -list=opt_list \
+    v=opt_verbose -verbose=opt_verbose h=opt_help -help=opt_help \
     || return $?
 
 if [[ -n $opt_help ]]; then
@@ -67,14 +67,14 @@ fi
 # define directory alias
 if [[ -n $opt_alias ]]; then
     if [[ -n $1 && ! -d $1 ]]; then
-	print -u2 "'$1' is not a directory"
-	return 1
+        print -u2 "'$1' is not a directory"
+        return 1
     fi
     a=${opt_alias[-1]#=}
     d=$(unfunction -m "*"; cd ${1:-.}; pwd)
     # alias in the current shell, update alias file if successful
     hash -d -- $a=$d &&
-    (   
+    (
         umask 077
         hash -dr
         [[ -r $SCD_ALIAS ]] && source $SCD_ALIAS
@@ -87,12 +87,12 @@ fi
 # undefine directory alias
 if [[ -n $opt_unalias ]]; then
     if [[ -n $1 && ! -d $1 ]]; then
-	print -u2 "'$1' is not a directory"
-	return 1
+        print -u2 "'$1' is not a directory"
+        return 1
     fi
     a=$(unfunction -m "*"; cd ${1:-.}; print -rP "%~")
     if [[ $a != [~][^/]## ]]; then
-        return 0
+        return
     fi
     a=${a#[~]}
     # unalias in the current shell, update alias file if successful
@@ -142,7 +142,7 @@ if [[ -n $opt_unindex ]]; then
         fi
     done
     m="$(<$SCD_HISTFILE \
-    gawk -v recursive=${opt_recursive} '
+    awk -v recursive=${opt_recursive} '
         BEGIN {
             for (i = 1; i < ARGC; ++i) {
                 argset[ARGV[i]] = 1;
@@ -164,18 +164,24 @@ if [[ -n $opt_unindex ]]; then
     return
 fi
 
-# self destructive action command
+# When scd is a shell function, scd_action gets undefined on return.
 scd_action() {
-    if [[ $# == 1 ]]; then
+    if [[ -n $opt_list ]]; then
+        for d; do
+            a=${(k)dalias[(r)${d}]}
+            print -r -- "# $a"
+            print -r -- $d
+        done
+    elif [[ $# == 1 ]]; then
         if [[ -z $SCD_SCRIPT && -n $RUNNING_AS_COMMAND ]]; then
             print -u2 "Warning: running as command with SCD_SCRIPT undefined."
         fi
         [[ -n $SCD_SCRIPT ]] && (umask 077;
             print -r "cd ${(q)1}" >| $SCD_SCRIPT)
-	[[ -N $SCD_HISTFILE ]] && touch -a $SCD_HISTFILE
+        [[ -N $SCD_HISTFILE ]] && touch -a $SCD_HISTFILE
         cd $1
-	# update SCD_HISTFILE unless already done in chpwd hook
-	[[ -N $SCD_HISTFILE ]] || print -rs $PWD
+        # update SCD_HISTFILE unless already done in chpwd hook
+        [[ -N $SCD_HISTFILE ]] || print -rs $PWD
     fi
 }
 trap 'unfunction scd_action' EXIT
@@ -197,8 +203,8 @@ fi
     tail -${SCD_HISTSIZE} $SCD_HISTFILE |
     awk -v epochseconds=$EPOCHSECONDS -v meanlife=$SCD_MEANLIFE '
         BEGIN { FS = "[:;]"; }
-	length($0) < 4096 {
-	    pi = 0.01 + exp(1.0 * ($2 - epochseconds) / meanlife);
+        length($0) < 4096 {
+            pi = 0.01 + exp(1.0 * ($2 - epochseconds) / meanlife);
             sub(/^[^;]*;/, "");
             p[$0] += pi;
         }
@@ -276,6 +282,12 @@ case ${#dmatching} in
                 print -P "%~"
             done)"} )
     for i in {1..${#m}}; dalias[${m[i]}]=$dmatching[i]
+    # opt_list - show matching directories and exit
+    if [[ -n $opt_list ]]; then
+        scd_action ${dmatching}
+        return
+    fi
+    # show run the selection dialog
     select d in ${m}; do
         scd_action ${dalias[$d]}
         return $?

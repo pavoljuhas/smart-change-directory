@@ -9,14 +9,14 @@
 "   To turn this autoindexing off, add the following line to your .vimrc:
 "       let g:scd_autoindex = 0
 "
-" Requirements: 
+" Requirements:
 "   * Linux or other Unix-like operating system (MAC does qualify)
 "   * zsh, the z-shell installed (usually a "zsh" package in Linux)
 "   * scd, the scd z-shell script installed in the PATH
 "     scd is available at http://code.google.com/p/smart-change-directory/
 "
 " Examples: these assume the target directories are in the scd index.
-"   
+"
 "       :Scd vi ftpl    " jump to the ~/.vim/ftplugin/ directory
 "       :Scd etc        " change to the most recently visited etc directory
 "       :Scd -ar ~/.vim " recursively index ~/.vim/ and its subdirectories
@@ -45,28 +45,38 @@ endif
 command! -nargs=* Scd call <SID>ScdFun("cd", "<args>")
 command! -nargs=* Slcd call <SID>ScdFun("lcd", "<args>")
 
-" Temporary file, where scd script saves the target directory.
-let $SCD_SCRIPT = tempname()
+" remember the last directory to reduce scd calls when autoindexing.
 let s:last_directory = getcwd()
 
-" The ScdFun does all the work.
+" this function does all the work
 function! s:ScdFun(cdcmd, scdargs)
-    if has("gui_running")
-        execute '!scd' a:scdargs
-    else
-        execute 'silent !scd' a:scdargs
-    endif
+    let cmd = 'scd --list ' . a:scdargs
+    let output = system(cmd)
     if v:shell_error
-        echo "Directory not found"
-    elseif getfsize($SCD_SCRIPT) > 0
-        let lines = readfile($SCD_SCRIPT, '', 1)
-        let cmd = lines[0]
-        let cmd = substitute(cmd, '^cd', a:cdcmd, '')
-        execute cmd
-        redraw!
-        echo getcwd()
+        echo output
+        return
     endif
-    let s:last_directory = getcwd()
+    let lines = split(output, '\n')
+    " directory names are in lines 0, 2, 4, ...
+    let daliases = filter(copy(lines), 'v:key % 2 == 0')
+    let daliases = map(daliases, '(v:key + 1) . ")" . strpart(v:val, 1)')
+    " odd lines are the matching directories
+    let dmatching = filter(lines, 'v:key % 2')
+    if empty(dmatching)
+        return
+    elseif len(dmatching) == 1
+        let target = dmatching[0]
+    else
+        let idx = inputlist(['Select directory:'] + daliases) - 1
+        redraw
+        if idx < 0 || idx >= len(dmatching)
+            return
+        endif
+        let target = dmatching[idx]
+    endif
+    execute a:cdcmd target
+    call s:ScdAddChangedDir()
+    pwd
 endfunction
 
 " Take care of autoindexing
@@ -76,7 +86,7 @@ function! s:ScdAddChangedDir()
         return
     endif
     let s:last_directory = getcwd()
-    silent !scd -a . &
+    call system('scd -a . &')
 endfunction
 
 " First remove all scd related autocommands.
