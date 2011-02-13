@@ -57,16 +57,20 @@ function! s:ScdFun(cdcmd, scdargs)
         return
     endif
     let lines = split(output, '\n')
-    " directory names are in lines 0, 2, 4, ...
-    let daliases = filter(copy(lines), 'v:key % 2 == 0')
+    let cnt = len(lines)
+    " even lines have directory alias names prefixed with '# '
+    let daliases = filter(copy(lines), 'v:key % 2 == 0 && v:val =~ "^# "')
     let daliases = map(daliases, '(v:key + 1) . ")" . strpart(v:val, 1)')
-    " odd lines are the matching directories
+    " odd lines have directory paths
     let dmatching = filter(lines, 'v:key % 2')
-    if empty(dmatching)
+    " check if dmatching and daliases are consistent
+    if !cnt || len(daliases) != len(dmatching) || cnt != 2 * len(daliases)
+        echo output
         return
-    elseif len(dmatching) == 1
-        let target = dmatching[0]
-    else
+    endif
+    " here dmatching is at least one
+    let target = dmatching[0]
+    if len(dmatching) > 1
         let idx = inputlist(['Select directory:'] + daliases) - 1
         redraw
         if idx < 0 || idx >= len(dmatching)
