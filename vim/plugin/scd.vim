@@ -42,15 +42,16 @@ if !exists('scd_autoindex')
 endif
 
 " define the Scd commands
-command! -nargs=* Scd call <SID>ScdFun("cd", "<args>")
-command! -nargs=* Slcd call <SID>ScdFun("lcd", "<args>")
+command! -nargs=* Scd call <SID>ScdFun("cd", <f-args>)
+command! -nargs=* Slcd call <SID>ScdFun("lcd", <f-args>)
 
 " remember the last directory to reduce scd calls when autoindexing.
 let s:last_directory = getcwd()
 
 " this function does all the work
-function! s:ScdFun(cdcmd, scdargs)
-    let cmd = 'scd --list ' . a:scdargs
+function! s:ScdFun(cdcmd, ...)
+    let qargs = map(copy(a:000), 'shellescape(v:val)')
+    let cmd = 'scd --list ' . join(qargs, ' ')
     let output = system(cmd)
     if v:shell_error
         echo output
