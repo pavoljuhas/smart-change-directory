@@ -12,9 +12,9 @@ def do_scd(self, arg):
     env['SCD_SCRIPT'] = scdfile.name
     args = ['scd'] + shlex.split(arg)
     retcode = subprocess.call(args, env=env)
-    if retcode == 0:
-        cmd = "%" + scdfile.read()
-        ip.runlines([cmd])
+    cmd = scdfile.read()
+    if retcode == 0 and cmd.startswith('cd '):
+        ip.magic(cmd)
     return
 
 
