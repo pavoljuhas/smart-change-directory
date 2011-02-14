@@ -2,11 +2,18 @@
 " $Date$
 " $Revision$
 " Maintainer: Pavol Juhas <pavol.juhas@gmail.com>
+" URL: http://code.google.com/p/smart-change-directory/
 "
 " Installation: Drop this file to the Vim plugin directory or source
-"   it from the .vimrc.  By default the scd plugin automatically indexes
-"   the visited directory after each :cd within the Vim session.
-"   To turn this autoindexing off, add the following line to your .vimrc:
+"   it from the .vimrc.  Copy the scd z-shell script to some directory
+"   in the PATH or use the g:scd_command variable to specify its location.
+"   Make sure the scd script has its executable permission set.
+"
+"   This plugin makes Vim automatically add visited directories to
+"   the scd index after each :cd command in the session.  This runs
+"   a background system command "scd -a ." when Vim becomes idle.
+"   To turn the indexing off, add the following line to the .vimrc file:
+"
 "       let g:scd_autoindex = 0
 "
 " Requirements:
@@ -15,15 +22,20 @@
 "   * scd, the scd z-shell script installed in the PATH
 "     scd is available at http://code.google.com/p/smart-change-directory/
 "
-" Examples: these assume the target directories are in the scd index.
+" Examples: these assume that target directories are in the scd index
 "
-"       :Scd vi ftpl    " jump to the ~/.vim/ftplugin/ directory
-"       :Scd etc        " change to the most recently visited etc directory
-"       :Scd -ar ~/.vim " recursively index ~/.vim/ and its subdirectories
-"       :Scd            " show selection menu of frequently used directories
-"       :Scd -v         " show selection menu with directory ranking
-"       :Slcd           " same as Scd, but use the :lcd Vim command
-"       :Scd --help     " display usage info for the scd script
+"   :Scd vi ftpl    " jump to the ~/.vim/ftplugin/ directory
+"   :Scd doc        " change to the most recently visited doc directory
+"   :Scd in(#e)     " change to the most recently visited doc directory
+"   :Scd            " show selection menu of frequently used directories
+"   :Scd -v         " show selection menu with directory ranking
+"   :Slcd           " same as Scd, but use the :lcd Vim command
+"   :Scd --help     " display usage info for the scd script
+"   :Scd -ar ~/.vim " recursively index ~/.vim/ and its subdirectories
+"
+" Configuration: this plugin consults the following Vim variables:
+"   g:scd_autoindex     flag for indexing the :cd visited directories [1]
+"   g:scd_command       path to the scd z-shell script ["scd"]
 
 " $Id$
 
@@ -32,14 +44,11 @@ if exists("loaded_scd") || &cp
 endif
 let loaded_scd = 1
 
-if !executable('scd')
-    finish
-endif
-
-" Configuration:
-if !exists('scd_autoindex')
-    let scd_autoindex = 1
-endif
+" parse configuration variables
+let s:scd_command = exists('g:scd_command') ? g:scd_command : 'scd'
+let s:scd_executable = (executable(s:scd_command) == 1)
+let s:scd_autoindex = exists('g:scd_autoindex') ? g:scd_autoindex : 1
+let s:scd_autoindex = s:scd_autoindex && s:scd_executable
 
 " define the Scd commands
 command! -nargs=* Scd call <SID>ScdFun("cd", <f-args>)
@@ -50,8 +59,9 @@ let s:last_directory = getcwd()
 
 " this function does all the work
 function! s:ScdFun(cdcmd, ...)
-    let qargs = map(copy(a:000), 'shellescape(v:val)')
-    let cmd = 'scd --list ' . join(qargs, ' ')
+    let qargs = map(copy(a:000),
+                \ '(v:val[0] == "~") ? v:val : shellescape(v:val)')
+    let cmd = join([s:scd_command, '--list'] + qargs, ' ')
     let output = system(cmd)
     if v:shell_error
         echo output
@@ -91,7 +101,7 @@ function! s:ScdAddChangedDir()
         return
     endif
     let s:last_directory = getcwd()
-    call system('scd -a . &')
+    call system(s:scd_command . ' -a . &')
 endfunction
 
 " First remove all scd related autocommands.
@@ -99,8 +109,9 @@ augroup ScdAutoCommands
     autocmd!
 augroup END
 augroup! ScdAutoCommands
+
 " If autoindex is on, watch for the CursorHold event.
-if scd_autoindex
+if s:scd_autoindex
     augroup ScdAutoCommands
         autocmd CursorHold * call s:ScdAddChangedDir()
     augroup END
