@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# $Id$
+
 import IPython.ipapi
 ip = IPython.ipapi.get()
 
