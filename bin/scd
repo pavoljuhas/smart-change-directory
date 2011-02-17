@@ -41,8 +41,7 @@ local opt_alias opt_unalias opt_list
 local -A drank dalias
 local dmatching
 
-setopt incappendhistory extendedhistory extendedglob noautonamedirs
-[[ ${+options[histsavebycopy]} == 1 ]] && setopt nohistsavebycopy
+setopt extendedhistory extendedglob noautonamedirs
 
 # make sure that any old commands are removed from SCD_SCRIPT
 [[ -n "$SCD_SCRIPT" && -s $SCD_SCRIPT ]] && : >| $SCD_SCRIPT
