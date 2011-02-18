@@ -27,7 +27,7 @@ Options:
   -h, --help        display this message and exit
 '
 
-local SCD_HISTFILE=~/.scdhistory
+local SCD_HISTFILE=${SCD_HISTFILE:-${HOME}/.scdhistory}
 local SCD_HISTSIZE=${SCD_HISTSIZE:-5000}
 local SCD_MENUSIZE=${SCD_MENUSIZE:-25}
 local SCD_MEANLIFE=${SCD_MEANLIFE:-86400}
@@ -107,8 +107,21 @@ if [[ -n $opt_unalias ]]; then
     return $?
 fi
 
-# define custom history file
+# load the history file, but do not write until there is a new record
 fc -a -p $SCD_HISTFILE $SCD_HISTSIZE
+unset HISTFILE
+
+# internal functions are named scd_Y19oug_* and they are unset on return
+trap 'unfunction -m "scd_Y19oug_*"' EXIT
+
+# The "record" function adds a non-repeating directory to the history
+# and turns on history writing.
+scd_Y19oug_record() {
+    if [[ $1 != ${history[$HISTCMD]} ]]; then
+        print -rs -- $1
+        HISTFILE=${SCD_HISTFILE}
+    fi
+}
 
 if [[ -n $opt_add ]]; then
     for a in ${*:-.}; do
@@ -117,11 +130,11 @@ if [[ -n $opt_add ]]; then
             return 2
         fi
         d=$(unfunction -m "*"; cd $a; pwd)
-        print -rs -- $d
+        scd_Y19oug_record $d
         if [[ -n $opt_recursive ]]; then
             print -n "scanning ${d} ... "
             for i in ${d}/**/*(-/N); do
-                print -rs -- $i
+                scd_Y19oug_record $d
             done
             print "[done]"
         fi
@@ -163,8 +176,8 @@ if [[ -n $opt_unindex ]]; then
     return
 fi
 
-# When scd is a shell function, scd_action gets undefined on return.
-scd_action() {
+# The "action" function is called when there is just one target directory.
+scd_Y19oug_action() {
     if [[ -n $opt_list ]]; then
         for d; do
             a=${(k)dalias[(r)${d}]}
@@ -179,64 +192,70 @@ scd_action() {
             print -r "cd ${(q)1}" >| $SCD_SCRIPT)
         [[ -N $SCD_HISTFILE ]] && touch -a $SCD_HISTFILE
         cd $1
-        # update SCD_HISTFILE unless already done in chpwd hook
-        [[ -N $SCD_HISTFILE ]] || print -rs $PWD
+        # record the new directory unless already done in some chpwd hook
+        [[ -N $SCD_HISTFILE ]] || scd_Y19oug_record $PWD
     fi
 }
-trap 'unfunction scd_action' EXIT
 
-# take care of existing directories
+# handle different argument scenarios ----------------------------------------
+
+## single argument that is an existing directory
 if  [[ $# == 1 && -d $1 && -x $1 ]]; then
-    scd_action $1
+    scd_Y19oug_action $1
     return $?
-# take care of exact aliases
+## single argument that is an alias
 elif  [[ $# == 1 ]] && d=${$(hash -d -m "(#s)$1")#${1}=} && [[ -d $d ]]; then
-    scd_action $d
+    scd_Y19oug_action $d
     return $?
 fi
 
+# ignore case unless there is an argument with an uppercase letter
 [[ "$*" == *[[:upper:]]* ]] || ICASE='(#i)'
 
-# calculate rank for all directories in the history
+# calculate rank of all directories in the SCD_HISTFILE and keep it as drank
 [[ -s $SCD_HISTFILE ]] && drank=( ${(f)"$(
     tail -${SCD_HISTSIZE} $SCD_HISTFILE |
     awk -v epochseconds=$EPOCHSECONDS -v meanlife=$SCD_MEANLIFE '
         BEGIN { FS = "[:;]"; }
         length($0) < 4096 {
-            pi = 0.01 + exp(1.0 * ($2 - epochseconds) / meanlife);
+            prec = 0.01 + exp(1.0 * ($2 - epochseconds) / meanlife);
             sub(/^[^;]*;/, "");
-            p[$0] += pi;
+            if (NF)  ptot[$0] += prec;
         }
-        END { for (di in p)  { print di; print p[di]; } }'
+        END { for (di in ptot)  { print di; print ptot[di]; } }'
     )"}
 )
 
+# filter drank to the entries that match all arguments
 for a; do
     p=${ICASE}"*${a}*"
     drank=( ${(kv)drank[(I)${~p}]} )
 done
 
-# build matching directories sorted by rank
-dmatching=( ${(f)"$( for d p in ${(kv)drank}; do print -r -- "$p $d"; done |
-    sort -grk1 | cut -d ' ' -f 2- )"} )
+# build a list of matching directories reverse-sorted by their probabilities
+dmatching=( ${(f)"$(
+    for d p in ${(kv)drank}; do
+        print -r -- "$p $d";
+    done | sort -grk1 | cut -d ' ' -f 2-
+    )"}
+)
 
-# reduce to exact matches
-# patterns follow each other
+# if some directory paths match all patterns in order, discard all others
 p=${ICASE}"*${(j:*:)argv}*"
 m=( ${(M)dmatching:#${~p}} )
 [[ -d ${m[1]} ]] && dmatching=( $m )
-# last pattern is in the path tail
+# if some directory names match last pattern, discard all others
 p=${ICASE}"*${(j:*:)argv}[^/]#"
 m=( ${(M)dmatching:#${~p}} )
 [[ -d ${m[1]} ]] && dmatching=( $m )
-# all patterns are present in the path tail
+# if some directory names match all patterns, discard all others
 m=( $dmatching )
 for a; do
     p=${ICASE}"*/[^/]#${a}[^/]#"
     m=( ${(M)m:#${~p}} )
 done
 [[ -d ${m[1]} ]] && dmatching=( $m )
-# all patterns are in the path tail following each other
+# if some directory names match all patterns in order, discard all others
 p=${ICASE}"/*${(j:[^/]#:)argv}[^/]#"
 m=( ${(M)dmatching:#${~p}} )
 [[ -d ${m[1]} ]] && dmatching=( $m )
@@ -246,7 +265,7 @@ if [[ $# == 0 ]]; then
     dmatching=( ${dmatching:#(${HOME}|${PWD})} )
 fi
 
-# cut dmatching to $SCD_MENUSIZE existing directories
+# keep at most SCD_MENUSIZE of matching and valid directories
 m=( )
 for d in $dmatching; do
     [[ ${#m} == $SCD_MENUSIZE ]] && break
@@ -254,41 +273,44 @@ for d in $dmatching; do
 done
 dmatching=( $m )
 
-# find out maximum rank
+# find the maximum rank
 maxrank=0.0
 for d in $dmatching; do
     [[ ${drank[$d]} -lt maxrank ]] || maxrank=${drank[$d]}
 done
 
-# cut out directories below rank threshold
+# discard all directories below the rank threshold
 threshold=$(( maxrank * SCD_THRESHOLD ))
 dmatching=( ${^dmatching}(Ne:'(( ${drank[$REPLY]} >= threshold ))':) )
 
+## process whatever directories that remained
 case ${#dmatching} in
 (0)
     print -u2 "no matching directory"
     return 1
     ;;
 (1)
-    scd_action $dmatching
+    scd_Y19oug_action $dmatching
     return $?
     ;;
 (*)
+    # build a list of strings to be displayed in the selection menu
     m=( ${(f)"$(unfunction -m "*";
             for d in ${dmatching}; do
                 cd $d
                 [[ -n $opt_verbose ]] && printf "%.3g " ${drank[$d]}
                 print -P "%~"
             done)"} )
-    for i in {1..${#m}}; dalias[${m[i]}]=$dmatching[i]
-    # opt_list - show matching directories and exit
+    # build a map of string names to actual directory paths
+    for i in {1..${#m}}; dalias[${m[i]}]=${dmatching[i]}
+    # opt_list - output matching directories and exit
     if [[ -n $opt_list ]]; then
-        scd_action ${dmatching}
+        scd_Y19oug_action ${dmatching}
         return
     fi
-    # show run the selection dialog
+    # finally use the selection menu to get the answer
     select d in ${m}; do
-        scd_action ${dalias[$d]}
+        scd_Y19oug_action ${dalias[$d]}
         return $?
     done
 esac
