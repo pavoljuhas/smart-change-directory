@@ -111,12 +111,10 @@ fi
 fc -a -p $SCD_HISTFILE $SCD_HISTSIZE
 unset HISTFILE
 
-# internal functions are named scd_Y19oug_* and they are unset on return
-trap 'unfunction -m "scd_Y19oug_*"' EXIT
-
+# Internal functions are prefixed with "_scd_Y19oug_".
 # The "record" function adds a non-repeating directory to the history
 # and turns on history writing.
-scd_Y19oug_record() {
+_scd_Y19oug_record() {
     if [[ $1 != ${history[$HISTCMD]} ]]; then
         print -rs -- $1
         HISTFILE=${SCD_HISTFILE}
@@ -130,11 +128,11 @@ if [[ -n $opt_add ]]; then
             return 2
         fi
         d=$(unfunction -m "*"; cd $a; pwd)
-        scd_Y19oug_record $d
+        _scd_Y19oug_record $d
         if [[ -n $opt_recursive ]]; then
             print -n "scanning ${d} ... "
             for i in ${d}/**/*(-/N); do
-                scd_Y19oug_record $d
+                _scd_Y19oug_record $d
             done
             print "[done]"
         fi
@@ -177,7 +175,7 @@ if [[ -n $opt_unindex ]]; then
 fi
 
 # The "action" function is called when there is just one target directory.
-scd_Y19oug_action() {
+_scd_Y19oug_action() {
     if [[ -n $opt_list ]]; then
         for d; do
             a=${(k)dalias[(r)${d}]}
@@ -193,7 +191,7 @@ scd_Y19oug_action() {
         [[ -N $SCD_HISTFILE ]] && touch -a $SCD_HISTFILE
         cd $1
         # record the new directory unless already done in some chpwd hook
-        [[ -N $SCD_HISTFILE ]] || scd_Y19oug_record $PWD
+        [[ -N $SCD_HISTFILE ]] || _scd_Y19oug_record $PWD
     fi
 }
 
@@ -201,11 +199,11 @@ scd_Y19oug_action() {
 
 ## single argument that is an existing directory
 if  [[ $# == 1 && -d $1 && -x $1 ]]; then
-    scd_Y19oug_action $1
+    _scd_Y19oug_action $1
     return $?
 ## single argument that is an alias
 elif  [[ $# == 1 ]] && d=${$(hash -d -m "(#s)$1")#${1}=} && [[ -d $d ]]; then
-    scd_Y19oug_action $d
+    _scd_Y19oug_action $d
     return $?
 fi
 
@@ -290,7 +288,7 @@ case ${#dmatching} in
     return 1
     ;;
 (1)
-    scd_Y19oug_action $dmatching
+    _scd_Y19oug_action $dmatching
     return $?
     ;;
 (*)
@@ -305,12 +303,12 @@ case ${#dmatching} in
     for i in {1..${#m}}; dalias[${m[i]}]=${dmatching[i]}
     # opt_list - output matching directories and exit
     if [[ -n $opt_list ]]; then
-        scd_Y19oug_action ${dmatching}
+        _scd_Y19oug_action ${dmatching}
         return
     fi
     # finally use the selection menu to get the answer
     select d in ${m}; do
-        scd_Y19oug_action ${dalias[$d]}
+        _scd_Y19oug_action ${dalias[$d]}
         return $?
     done
 esac
