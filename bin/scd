@@ -132,7 +132,7 @@ if [[ -n $opt_add ]]; then
         if [[ -n $opt_recursive ]]; then
             print -n "scanning ${d} ... "
             for i in ${d}/**/*(-/N); do
-                _scd_Y19oug_record $d
+                _scd_Y19oug_record $i
             done
             print "[done]"
         fi
