@@ -29,7 +29,7 @@ Options:
 
 local SCD_HISTFILE=${SCD_HISTFILE:-${HOME}/.scdhistory}
 local SCD_HISTSIZE=${SCD_HISTSIZE:-5000}
-local SCD_MENUSIZE=${SCD_MENUSIZE:-25}
+local SCD_MENUSIZE=${SCD_MENUSIZE:-20}
 local SCD_MEANLIFE=${SCD_MEANLIFE:-86400}
 local SCD_THRESHOLD=${SCD_THRESHOLD:-0.005}
 local SCD_SCRIPT=${SCD_SCRIPT:-}
@@ -38,10 +38,10 @@ local SCD_ALIAS=~/.scdalias.zsh
 local ICASE a d m p i tdir maxrank threshold
 local opt_help opt_add opt_unindex opt_recursive opt_verbose
 local opt_alias opt_unalias opt_list
-local -A drank dalias
+local -A drank dalias dkey
 local dmatching
 
-setopt extendedhistory extendedglob noautonamedirs
+setopt extendedhistory extendedglob noautonamedirs brace_ccl
 
 # make sure that any old commands are removed from SCD_SCRIPT
 [[ -n "$SCD_SCRIPT" && -s $SCD_SCRIPT ]] && : >| $SCD_SCRIPT
@@ -307,8 +307,16 @@ case ${#dmatching} in
         return
     fi
     # finally use the selection menu to get the answer
-    select d in ${m}; do
-        _scd_Y19oug_action ${dalias[$d]}
-        return $?
+    a=( {a-z} {A-Z} )
+    p=( )
+    for i in {1..${#m}}; do
+        [[ -n ${a[i]} ]] || break
+        dkey[${a[i]}]=${dalias[$m[i]]}
+        p+="${a[i]}) ${m[i]}"
     done
+    print -c -r -- $p
+    if read -s -k 1 d && [[ -n ${dkey[$d]} ]]; then
+        _scd_Y19oug_action ${dkey[$d]}
+    fi
+    return $?
 esac
