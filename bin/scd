@@ -293,12 +293,13 @@ case ${#dmatching} in
     ;;
 (*)
     # build a list of strings to be displayed in the selection menu
-    m=( ${(f)"$(unfunction -m "*";
-            for d in ${dmatching}; do
-                cd $d
-                [[ -n $opt_verbose ]] && printf "%.3g " ${drank[$d]}
-                print -P "%~"
-            done)"} )
+    m=( ${(f)"$(print -lD ${dmatching})"} )
+    if [[ -n $opt_verbose ]]; then
+        for i in {1..${#dmatching}}; do
+            d=${dmatching[i]}
+            m[i]=$(printf "%.3g %s" ${drank[$d]} $d)
+        done
+    fi
     # build a map of string names to actual directory paths
     for i in {1..${#m}}; dalias[${m[i]}]=${dmatching[i]}
     # opt_list - output matching directories and exit
