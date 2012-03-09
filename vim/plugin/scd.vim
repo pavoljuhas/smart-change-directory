@@ -89,7 +89,7 @@ function! s:ScdFun(cdcmd, ...)
         endif
         let target = dmatching[idx]
     endif
-    execute a:cdcmd target
+    execute a:cdcmd fnameescape(target)
     call s:ScdAddChangedDir()
     pwd
 endfunction
