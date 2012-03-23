@@ -70,7 +70,7 @@ if [[ -n $opt_alias ]]; then
         return 1
     fi
     a=${opt_alias[-1]#=}
-    d=$(unfunction -m "*"; cd ${1:-.}; pwd)
+    d=${${1:-.}:a}
     # alias in the current shell, update alias file if successful
     hash -d -- $a=$d &&
     (
@@ -89,7 +89,7 @@ if [[ -n $opt_unalias ]]; then
         print -u2 "'$1' is not a directory"
         return 1
     fi
-    a=$(unfunction -m "*"; cd ${1:-.}; print -rP "%~")
+    a=$(print -rD ${${1:-.}:a})
     if [[ $a != [~][^/]## ]]; then
         return
     fi
@@ -127,7 +127,7 @@ if [[ -n $opt_add ]]; then
             print -u 2 "Directory $a does not exist"
             return 2
         fi
-        d=$(unfunction -m "*"; cd $a; pwd)
+        d=${a:a}
         _scd_Y19oug_record $d
         if [[ -n $opt_recursive ]]; then
             print -n "scanning ${d} ... "
@@ -148,7 +148,7 @@ if [[ -n $opt_unindex ]]; then
     # expand existing directories in the argument list
     for i in {1..$#}; do
         if [[ -d ${argv[i]} ]]; then
-            argv[i]=$(unfunction -m "*"; cd ${argv[i]}; pwd)
+            argv[i]=${argv[i]:a}
         fi
     done
     m="$(<$SCD_HISTFILE \
