@@ -175,7 +175,7 @@ if [[ -n $opt_unindex ]]; then
         }
         { print $0 }
         ' ${*:-$PWD} )" || return $?
-    print -nr -- "$m" >| ${SCD_HISTFILE}
+    print -r -- ${m%%[[:space:]]#} >| ${SCD_HISTFILE}
     return
 fi
 
