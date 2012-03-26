@@ -107,36 +107,41 @@ if [[ -n $opt_unalias ]]; then
     return $?
 fi
 
-# load the history file, but do not write until there is a new record
+# load the history file, rewrite if at least 20% oversized
 fc -a -p $SCD_HISTFILE $SCD_HISTSIZE
+(( ${HISTCMD} > 1.2 * $SCD_HISTSIZE )) && fc -W
+# Use simple appends to SCD_HISTFILE instead of builtin full rewrites.
 unset HISTFILE
 
 # Internal functions are prefixed with "_scd_Y19oug_".
 # The "record" function adds a non-repeating directory to the history
 # and turns on history writing.
 _scd_Y19oug_record() {
-    if [[ $1 != ${history[$HISTCMD]} ]]; then
-        print -rs -- $1
-        HISTFILE=${SCD_HISTFILE}
+    while [[ -n $1 && $1 == ${history[$HISTCMD]} ]]; do
+        shift
+    done
+    if [[ $# != 0 ]]; then
+        ( umask 077; : >>| $SCD_HISTFILE )
+        p=": "${(%):-'%D{%s}'}":0;"
+        print -lr -- ${p}${^*} >> $SCD_HISTFILE
     fi
 }
 
 if [[ -n $opt_add ]]; then
-    for a in ${*:-.}; do
+    for a; do
         if [[ ! -d $a ]]; then
             print -u 2 "Directory $a does not exist"
             return 2
         fi
-        d=${a:a}
-        _scd_Y19oug_record $d
-        if [[ -n $opt_recursive ]]; then
-            print -n "scanning ${d} ... "
-            for i in ${d}/**/*(-/N); do
-                _scd_Y19oug_record $i
-            done
-            print "[done]"
-        fi
     done
+    _scd_Y19oug_record ${${*:-.}:a}
+    if [[ -n $opt_recursive ]]; then
+        for d in ${${*:-.}:a}; do
+            print -n "scanning ${d} ... "
+            _scd_Y19oug_record ${d}/**/*(-/N)
+            print "[done]"
+        done
+    fi
     return
 fi
 
