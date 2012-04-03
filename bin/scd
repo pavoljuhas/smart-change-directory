@@ -63,6 +63,16 @@ fi
 # load directory aliases if they exist
 [[ -r $SCD_ALIAS ]] && source $SCD_ALIAS
 
+# works faster than the (:a) modifier and is compatible with zsh 4.2.6
+_scd_Y19oug_abspath() {
+    set -A $1 ${(ps:\0:)"$(
+        unfunction -m "*"; shift
+        for d; do
+            cd $d && print -Nr -- $PWD && cd $OLDPWD
+        done
+        )"}
+}
+
 # define directory alias
 if [[ -n $opt_alias ]]; then
     if [[ -n $1 && ! -d $1 ]]; then
@@ -70,7 +80,7 @@ if [[ -n $opt_alias ]]; then
         return 1
     fi
     a=${opt_alias[-1]#=}
-    d=${${1:-.}:a}
+    _scd_Y19oug_abspath d ${1:-$PWD}
     # alias in the current shell, update alias file if successful
     hash -d -- $a=$d &&
     (
@@ -89,7 +99,8 @@ if [[ -n $opt_unalias ]]; then
         print -u2 "'$1' is not a directory"
         return 1
     fi
-    a=$(print -rD ${${1:-.}:a})
+    _scd_Y19oug_abspath a ${1:-$PWD}
+    a=$(print -rD ${a})
     if [[ $a != [~][^/]## ]]; then
         return
     fi
@@ -134,9 +145,10 @@ if [[ -n $opt_add ]]; then
             return 2
         fi
     done
-    _scd_Y19oug_record ${${*:-.}:a}
+    _scd_Y19oug_abspath m ${*:-$PWD}
+    _scd_Y19oug_record $m
     if [[ -n $opt_recursive ]]; then
-        for d in ${${*:-.}:a}; do
+        for d in $m; do
             print -n "scanning ${d} ... "
             _scd_Y19oug_record ${d}/**/*(-/N)
             print "[done]"
@@ -153,7 +165,8 @@ if [[ -n $opt_unindex ]]; then
     # expand existing directories in the argument list
     for i in {1..$#}; do
         if [[ -d ${argv[i]} ]]; then
-            argv[i]=${argv[i]:a}
+            _scd_Y19oug_abspath d ${argv[i]}
+            argv[i]=${d}
         fi
     done
     m="$(<$SCD_HISTFILE \
