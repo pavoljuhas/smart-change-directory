@@ -133,7 +133,7 @@ _scd_Y19oug_record() {
     done
     if [[ $# != 0 ]]; then
         ( umask 077; : >>| $SCD_HISTFILE )
-        p=": "${(%):-'%D{%s}'}":0;"
+        p=": ${EPOCHSECONDS}:0;"
         print -lr -- ${p}${^*} >> $SCD_HISTFILE
     fi
 }
@@ -233,7 +233,7 @@ fi
     tail -${SCD_HISTSIZE} $SCD_HISTFILE |
     awk -v epochseconds=$EPOCHSECONDS -v meanlife=$SCD_MEANLIFE '
         BEGIN { FS = "[:;]"; }
-        length($0) < 4096 {
+        length($0) < 4096 && $2 > 0 {
             prec = 0.01 + exp(1.0 * ($2 - epochseconds) / meanlife);
             sub(/^[^;]*;/, "");
             if (NF)  ptot[$0] += prec;
