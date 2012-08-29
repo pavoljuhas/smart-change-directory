@@ -1,0 +1,26 @@
+## Try to load scd as a shell function either from the FPATH or from PATH
+## if installed at either place.  Complain if scd cannot be found.
+if ( found=( ${^fpath}/scd(N-.) ) && [[ -n ${found} ]] ); then
+    autoload scd 
+elif fpath=( ${fpath} =scd(:h) ); then
+    autoload +X scd || unfunction -m scd
+    fpath[-1]=( )
+else
+    print -u2 "scd could not be found neither in FPATH nor in PATH."
+fi
+
+
+## The chpwd function is a special built-in function executed after
+## directory change.  Uncomment the following lines to record visited
+## directories in the scd index.  If you already use chpwd, just add
+## there the scd command.
+
+# chpwd()  { scd --add . }
+
+
+## Allow scd usage with unquoted wildcard characters such as "*" or "?".
+alias scd='noglob scd'
+
+
+## Load the directory aliases created by scd if any.
+[[ -f ~/.scdalias.zsh ]] && source ~/.scdalias.zsh

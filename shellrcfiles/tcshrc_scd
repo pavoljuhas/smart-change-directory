@@ -1,0 +1,9 @@
+## Define an "scd" alias that runs the scd external command
+## and changes to the selected directory.
+setenv SCD_SCRIPT ${HOME}/bin/.scd.go
+alias scd "scd \!* && source ${SCD_SCRIPT}"
+
+
+## Define the special "cwdcmd" alias to record visited directories in
+## the scd index.
+alias cwdcmd '(unalias scd; scd --add $PWD)'

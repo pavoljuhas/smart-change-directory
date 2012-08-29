@@ -1,0 +1,13 @@
+## Define an "scd" shell function that runs the scd external command
+## and changes to the selected directory.
+export SCD_SCRIPT=${HOME}/bin/.scd.go
+scd() {
+    command scd "$@" && . $SCD_SCRIPT
+}
+
+
+## Define a "cd" shell function that records visited directories in
+## the scd index.
+cd() {
+    chdir "$@" && command scd --add $PWD
+}
