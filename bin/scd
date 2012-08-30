@@ -43,8 +43,12 @@ local dmatching
 
 setopt extendedhistory extendedglob noautonamedirs brace_ccl
 
-# make sure that any old commands are removed from SCD_SCRIPT
-[[ -n "$SCD_SCRIPT" && -s $SCD_SCRIPT ]] && : >| $SCD_SCRIPT
+# If SCD_SCRIPT is defined make sure the file exists and is empty.
+# This removes any previous old commands.
+[[ -n "$SCD_SCRIPT" ]] && [[ -s $SCD_SCRIPT || ! -f $SCD_SCRIPT ]] && (
+    umask 077
+    : >| $SCD_SCRIPT
+)
 
 # process command line options
 zmodload -i zsh/zutil
