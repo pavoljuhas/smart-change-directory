@@ -239,7 +239,7 @@ fi
         BEGIN { FS = "[:;]"; }
         length($0) < 4096 && $2 > 0 {
             tau = 1.0 * ($2 - epochseconds) / meanlife;
-            if (tau < -9)  tau = -9;
+            if (tau < -4.61)  tau = -4.61;
             prec = exp(tau);
             sub(/^[^;]*;/, "");
             if (NF)  ptot[$0] += prec;
