@@ -238,7 +238,9 @@ fi
     awk -v epochseconds=$EPOCHSECONDS -v meanlife=$SCD_MEANLIFE '
         BEGIN { FS = "[:;]"; }
         length($0) < 4096 && $2 > 0 {
-            prec = 0.01 + exp(1.0 * ($2 - epochseconds) / meanlife);
+            tau = 1.0 * ($2 - epochseconds) / meanlife;
+            if (tau < -9)  tau = -9;
+            prec = exp(tau);
             sub(/^[^;]*;/, "");
             if (NF)  ptot[$0] += prec;
         }
