@@ -15,7 +15,7 @@ fi
 ## directories in the scd index.  If you already use chpwd, just add
 ## there the scd command.
 
-# chpwd()  { scd --add . }
+# chpwd()  { scd --add "$PWD" }
 
 
 ## Allow scd usage with unquoted wildcard characters such as "*" or "?".
