@@ -14,7 +14,7 @@ To define the %scd magic in every ipython session in
 IPython 0.10 or earlier, import this module from the
 ~/.ipython/ipy_user_conf.py file.
 
-For IPython 0.11 or later, add this module to the 
+For IPython 0.11 or later, add this module to the
 c.InteractiveShellApp.extensions list in the
 IPYTHON/profile_default/ipython_config.py file.
 """
@@ -22,13 +22,29 @@ IPYTHON/profile_default/ipython_config.py file.
 import re
 import IPython
 
-isipython010 = map(int, re.split(r'(\d+)', IPython.__version__)[1::2]) < [0, 11]
+ipyversion = map(int, re.split(r'(\d+)', IPython.__version__)[1::2])
+isipython010 = ipyversion < [0, 11]
+isipython012 = (ipyversion < [0, 13]) and not isipython010
+isipython013 = not (ipyversion < [0, 13])
 
-# isipython010 is True for IPython 0.10 or earlier
-if isipython010:
-    from IPython.Magic import Magic
-else:
-    from IPython.core.magic import Magic
+class _cdcommands:
+    cd = None
+    pushd = None
+    popd = None
+    if isipython013:
+        from IPython.core.magics import OSMagics
+        cd_doc = OSMagics.cd.__doc__
+        pushd_doc = OSMagics.pushd.__doc__
+        popd_doc = OSMagics.popd.__doc__
+    else:
+        if isipython010:
+            from IPython.Magic import Magic
+        else:
+            from IPython.core.magic import Magic
+        cd_doc = Magic.magic_cd.__doc__
+        pushd_doc = Magic.magic_pushd.__doc__
+        popd_doc = Magic.magic_popd.__doc__
+    pass
 
 
 def whereisexecutable(program):
@@ -86,31 +102,32 @@ def do_scd(self, arg):
     retcode = subprocess.call(args, env=env)
     cmd = scdfile.read()
     if retcode == 0 and cmd.startswith('cd '):
-        Magic.magic_cd(self, cmd[3:])
+        _cdcommands.cd(cmd[3:])
     return
 
 
 def do_cd(self, arg):
-    rv = Magic.magic_cd(self, arg)
+    rv = _cdcommands.cd(arg)
     _scd_record_cwd()
     return rv
-do_cd.__doc__ = Magic.magic_cd.__doc__
+do_cd.__doc__ = _cdcommands.cd_doc
 
 
 def do_pushd(self, arg):
-    rv = Magic.magic_pushd(self, arg)
+    rv = _cdcommands.pushd(arg)
     _scd_record_cwd()
     return rv
-do_pushd.__doc__ = Magic.magic_pushd.__doc__
+do_pushd.__doc__ = _cdcommands.pushd_doc
 
 
 def do_popd(self, arg):
-    rv = Magic.magic_popd(self, arg)
+    rv = _cdcommands.popd(arg)
     _scd_record_cwd()
     return rv
-do_popd.__doc__ = Magic.magic_popd.__doc__
+do_popd.__doc__ = _cdcommands.popd_doc
 
-# Functions for loading and unloading scd magic using the 0.11 or later API
+
+# Function for loading the scd magic with the 0.11 or later API
 
 def load_ipython_extension(ipython):
     '''Define the scd command and overloads of cd, pushd, popd that record
@@ -119,19 +136,29 @@ def load_ipython_extension(ipython):
     When flag is False, revert to the default behavior.
     '''
     _raiseIfNoExecutable()
+    if _cdcommands.cd is None:
+        if isipython013:
+            _cdcommands.cd = ipython.find_magic('cd')
+            _cdcommands.pushd = ipython.find_magic('pushd')
+            _cdcommands.popd = ipython.find_magic('popd')
+        else:
+            _cdcommands.cd = ipython.magic_cd
+            _cdcommands.pushd = ipython.magic_pushd
+            _cdcommands.popd = ipython.magic_popd
     ipython.define_magic('scd', do_scd)
     ipython.define_magic('cd', do_cd)
     ipython.define_magic('pushd', do_pushd)
     ipython.define_magic('popd', do_popd)
+    global _scd_active
+    _scd_active = True
     return
 
 
 def unload_ipython_extension(ipython):
     if hasattr(ipython, 'magic_scd'):
         delattr(ipython, 'magic_scd')
-    ipython.define_magic('cd', Magic.magic_cd)
-    ipython.define_magic('pushd', Magic.magic_pushd)
-    ipython.define_magic('popd', Magic.magic_popd)
+    global _scd_active
+    _scd_active = False
     return
 
 # This function activates or disables scd magic in IPython 0.10
@@ -143,28 +170,34 @@ def scdactivate(flag):
     When flag is False, undefine the scd command and revert all
     cd-related commands to their default behavior.
     '''
+    global _scd_active
     import IPython.ipapi
     ip = IPython.ipapi.get()
+    if _cdcommands.cd is None:
+        _cdcommands.cd = ip.IP.magic_cd
+        _cdcommands.pushd = ip.IP.magic_pushd
+        _cdcommands.popd = ip.IP.magic_popd
     if flag:
         _raiseIfNoExecutable()
         ip.expose_magic('scd', do_scd)
         ip.expose_magic('cd', do_cd)
         ip.expose_magic('pushd', do_pushd)
         ip.expose_magic('popd', do_popd)
+        _scd_active = True
     else:
         ipshell = ip.IP
         if hasattr(ipshell, 'magic_scd'):
             delattr(ipshell, 'magic_scd')
-        ip.expose_magic('cd', Magic.magic_cd)
-        ip.expose_magic('pushd', Magic.magic_pushd)
-        ip.expose_magic('popd', Magic.magic_popd)
+        _scd_active = False
     return
+_scd_active = False
 
 # Disable for later ipython versions
 if not isipython010:
     del scdactivate
 
 def _scd_record_cwd():
+    if not _scd_active:  return
     import os
     import subprocess
     global _scd_last_directory
