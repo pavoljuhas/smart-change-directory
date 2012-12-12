@@ -173,10 +173,9 @@ if [[ -n $opt_unindex ]]; then
             argv[i]=${d}
         fi
     done
-    m="$(<$SCD_HISTFILE \
-    awk -v recursive=${opt_recursive} '
+    m="$(awk -v recursive=${opt_recursive} '
         BEGIN {
-            for (i = 1; i < ARGC; ++i) {
+            for (i = 2; i < ARGC; ++i) {
                 argset[ARGV[i]] = 1;
                 delete ARGV[i];
             }
@@ -191,7 +190,7 @@ if [[ -n $opt_unindex ]]; then
             }
         }
         { print $0 }
-        ' ${*:-$PWD} )" || return $?
+        ' $SCD_HISTFILE ${*:-$PWD} )" || return $?
     : >| ${SCD_HISTFILE}
     [[ ${#m} == 0 ]] || print -r -- $m >> ${SCD_HISTFILE}
     return
