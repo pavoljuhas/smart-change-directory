@@ -192,7 +192,8 @@ if [[ -n $opt_unindex ]]; then
         }
         { print $0 }
         ' ${*:-$PWD} )" || return $?
-    print -r -- ${m%%[[:space:]]#} >| ${SCD_HISTFILE}
+    : >| ${SCD_HISTFILE}
+    [[ ${#m} == 0 ]] || print -r -- $m >> ${SCD_HISTFILE}
     return
 fi
 
@@ -233,7 +234,9 @@ fi
 [[ "$*" == *[[:upper:]]* ]] || ICASE='(#i)'
 
 # calculate rank of all directories in the SCD_HISTFILE and keep it as drank
+# include a dummy entry for splitting of an empty string is buggy
 [[ -s $SCD_HISTFILE ]] && drank=( ${(f)"$(
+    print -l /dev/null -10
     tail -${SCD_HISTSIZE} $SCD_HISTFILE |
     awk -v epochseconds=$EPOCHSECONDS -v meanlife=$SCD_MEANLIFE '
         BEGIN { FS = "[:;]"; }
@@ -247,6 +250,7 @@ fi
         END { for (di in ptot)  { print di; print ptot[di]; } }'
     )"}
 )
+unset "drank[/dev/null]"
 
 # filter drank to the entries that match all arguments
 for a; do
