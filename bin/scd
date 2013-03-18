@@ -32,7 +32,7 @@ local SCD_HISTSIZE=${SCD_HISTSIZE:-5000}
 local SCD_MENUSIZE=${SCD_MENUSIZE:-20}
 local SCD_MEANLIFE=${SCD_MEANLIFE:-86400}
 local SCD_THRESHOLD=${SCD_THRESHOLD:-0.005}
-local SCD_SCRIPT=${SCD_SCRIPT:-}
+local SCD_SCRIPT=${RUNNING_AS_COMMAND:+$SCD_SCRIPT}
 local SCD_ALIAS=~/.scdalias.zsh
 
 local ICASE a d m p i tdir maxrank threshold
