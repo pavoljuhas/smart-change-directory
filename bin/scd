@@ -1,4 +1,4 @@
-#!/bin/zsh -if
+#!/bin/zsh -f
 # $Id$
 
 emulate -L zsh
