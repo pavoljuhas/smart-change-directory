@@ -236,7 +236,7 @@ fi
 # include a dummy entry for splitting of an empty string is buggy
 [[ -s $SCD_HISTFILE ]] && drank=( ${(f)"$(
     print -l /dev/null -10
-    tail -${SCD_HISTSIZE} $SCD_HISTFILE |
+    <$SCD_HISTFILE \
     awk -v epochseconds=$EPOCHSECONDS -v meanlife=$SCD_MEANLIFE '
         BEGIN { FS = "[:;]"; }
         length($0) < 4096 && $2 > 0 {
