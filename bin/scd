@@ -122,11 +122,12 @@ if [[ -n $opt_unalias ]]; then
     return $?
 fi
 
-# load the history file, rewrite if at least 20% oversized
-fc -a -p $SCD_HISTFILE $SCD_HISTSIZE
-(( ${HISTCMD} > 1.2 * $SCD_HISTSIZE )) && fc -W
-# Use simple appends to SCD_HISTFILE instead of builtin full rewrites.
-unset HISTFILE
+# Rewrite the history file if it is at least 20% oversized
+if [[ -s $SCD_HISTFILE ]] && \
+(( $(wc -l <$SCD_HISTFILE) > 1.2 * $SCD_HISTSIZE )); then
+    m=( ${(f)"$(<$SCD_HISTFILE)"} )
+    print -lr -- ${m[-$SCD_HISTSIZE,-1]} >| ${SCD_HISTFILE}
+fi
 
 # Internal functions are prefixed with "_scd_Y19oug_".
 # The "record" function adds a non-repeating directory to the history
