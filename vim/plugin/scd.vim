@@ -1,6 +1,5 @@
 " scd.vim -- Vim plugin for Smart Change of Directory
-" Date: 2013-12-05
-" Revision: 38
+" Date: 2013-12-06
 " Maintainer: Pavol Juhas <pavol.juhas@gmail.com>
 " URL: http://code.google.com/p/smart-change-directory/
 "
@@ -120,13 +119,23 @@ endif
 " Completion function for aliases and directory names
 
 function! s:ScdComplete(A, L, P)
-    let anames1 = keys(s:ScdLoadAliases())
+    let aliases = {'a' : s:ScdLoadAliases()}
+    let anames1 = keys(aliases.a)
     let anames2 = map(copy(anames1), '"~" . v:val')
+    function aliases.expand(t) dict
+        let idx = stridx(a:t, '/')
+        let thead = strpart(a:t, 0, idx)
+        let ttail = strpart(a:t, idx)
+        let thead1 = strpart(thead, 1)
+        let exphead = (thead =~ '^[~]' && has_key(self.a, thead1)) ?
+                    \ self.a[thead1] : expand(thead)
+        return exphead . ttail
+    endfunction
     " avoid globing and associated shell calls if we are expanding an alias
     let searchdirs = (a:A !~ '^[~][^/]*$')
-    let Afull = searchdirs ? expand(a:A) : a:A
+    let Afull = aliases.expand(a:A)
     let dirnames = searchdirs ? glob(Afull . '*', 0, 1) : []
-    call filter(dirnames, 'isdirectory(v:val)')
+    call filter(dirnames, 'isdirectory(v:val) && v:val !~ "/[.][.]\\?$"')
     let dir = {'path' : {}, 'A' : a:A, 'Afull' : Afull, 'nf' : strlen(Afull)}
     function dir.unique(d) dict
         let self.path[a:d] = has_key(self.path, a:d)
@@ -166,7 +175,9 @@ function! s:ScdLoadAliases()
         let ca = substitute(strpart(line, 0, eq), '.*\s', '', '')
         let df = substitute(strpart(line, eq + 1), '\s*$', '', '')
         let df = substitute(df, "^'\\(.*\\)'$", '\1', '')
-        let ad[ca] = df
+        if isdirectory(df)
+            let ad[ca] = df
+        endif
     endfor
     let s:scd_alias = ad
     let s:scd_alias_mtime = getftime(s:scd_alias_file)
