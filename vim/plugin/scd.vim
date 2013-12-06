@@ -1,6 +1,6 @@
 " scd.vim -- Vim plugin for Smart Change of Directory
-" $Date$
-" $Revision$
+" Date: 2013-12-05
+" Revision: 38
 " Maintainer: Pavol Juhas <pavol.juhas@gmail.com>
 " URL: http://code.google.com/p/smart-change-directory/
 "
@@ -37,8 +37,6 @@
 "   g:scd_autoindex     flag for indexing the :cd visited directories [1]
 "   g:scd_command       path to the scd z-shell script ["scd"]
 
-" $Id$
-
 if exists("loaded_scd") || &cp
     finish
 endif
@@ -51,8 +49,10 @@ let s:scd_autoindex = exists('g:scd_autoindex') ? g:scd_autoindex : 1
 let s:scd_autoindex = s:scd_autoindex && s:scd_executable
 
 " define the Scd commands
-command! -nargs=* Scd call <SID>ScdFun("cd", <f-args>)
-command! -nargs=* Slcd call <SID>ScdFun("lcd", <f-args>)
+command! -complete=custom,s:ScdComplete -nargs=* Slcd
+            \ call <SID>ScdFun("cd", <f-args>)
+command! -complete=custom,s:ScdComplete -nargs=* Scd
+            \ call <SID>ScdFun("lcd", <f-args>)
 
 " remember the last directory to reduce scd calls when autoindexing.
 let s:last_directory = getcwd()
@@ -116,3 +116,45 @@ if s:scd_autoindex
         autocmd CursorHold * call s:ScdAddChangedDir()
     augroup END
 endif
+
+" Completion function for aliases and directory names
+
+function! s:ScdComplete(A, L, P)
+    let anames1 = keys(s:ScdLoadAliases())
+    let anames2 = map(copy(anames1), '"~" . v:val')
+    let dirnames = split(globpath(&cdpath, a:A . '*'), "\n")
+    call filter(dirnames, 'isdirectory(v:val)')
+    let suggestions = (empty(a:A) ? [] : anames1) + anames2 + dirnames
+    return join(suggestions, "\n")
+endfunction
+
+" Helper function for loading scd aliases
+
+let s:scd_alias = {}
+let s:scd_alias_file = $HOME . '/.scdalias.zsh'
+let s:scd_alias_mtime = -20
+
+function! s:ScdLoadAliases()
+    let ad = {}
+    if !filereadable(s:scd_alias_file)
+        return ad
+    endif
+    " shortcut if aliases have been cached
+    if getftime(s:scd_alias_file) == s:scd_alias_mtime
+        return s:scd_alias
+    endif
+    " here we need to load and cache the scd aliases
+    for line in readfile(s:scd_alias_file)
+        if line !~# '^hash -d .*\S='
+            continue
+        endif
+        let eq = stridx(line, '=')
+        let ca = substitute(strpart(line, 0, eq), '.*\s', '', '')
+        let df = substitute(strpart(line, eq + 1), '\s*$', '', '')
+        let df = substitute(df, "^'\\(.*\\)'$", '\1', '')
+        let ad[ca] = df
+    endfor
+    let s:scd_alias = ad
+    let s:scd_alias_mtime = getftime(s:scd_alias_file)
+    return s:scd_alias
+endfunction
