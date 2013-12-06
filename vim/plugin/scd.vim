@@ -122,8 +122,22 @@ endif
 function! s:ScdComplete(A, L, P)
     let anames1 = keys(s:ScdLoadAliases())
     let anames2 = map(copy(anames1), '"~" . v:val')
-    let dirnames = split(globpath(&cdpath, a:A . '*'), "\n")
+    " avoid globing and associated shell calls if we are expanding an alias
+    let searchdirs = (a:A !~ '^[~][^/]*$')
+    let Afull = searchdirs ? expand(a:A) : a:A
+    let dirnames = searchdirs ? glob(Afull . '*', 0, 1) : []
     call filter(dirnames, 'isdirectory(v:val)')
+    let dir = {'path' : {}, 'A' : a:A, 'Afull' : Afull, 'nf' : strlen(Afull)}
+    function dir.unique(d) dict
+        let self.path[a:d] = has_key(self.path, a:d)
+        return !self.path[a:d]
+    endfunction
+    function dir.unexpand(d) dict
+        let d1 = stridx(a:d, self.Afull) ? a:d : self.A . strpart(a:d, self.nf)
+        return escape(d1, ' \')
+    endfunction
+    call filter(dirnames, 'dir.unique(v:val)')
+    call map(dirnames, 'dir.unexpand(v:val)')
     let suggestions = (empty(a:A) ? [] : anames1) + anames2 + dirnames
     return join(suggestions, "\n")
 endfunction
