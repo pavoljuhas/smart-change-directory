@@ -221,11 +221,11 @@ _scd_Y19oug_action() {
 # handle different argument scenarios ----------------------------------------
 
 ## single argument that is an existing directory
-if  [[ $# == 1 && -d $1 && -x $1 ]]; then
+if [[ $# == 1 && -d $1 && -x $1 ]]; then
     _scd_Y19oug_action $1
     return $?
 ## single argument that is an alias
-elif  [[ $# == 1 ]] && d=${$(hash -d -m "(#s)$1")#${1}=} && [[ -d $d ]]; then
+elif [[ $# == 1 && -d ${d::=${nameddirs[$1]}} ]]; then
     _scd_Y19oug_action $d
     return $?
 fi
