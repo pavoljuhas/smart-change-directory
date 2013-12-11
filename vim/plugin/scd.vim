@@ -42,10 +42,11 @@ endif
 let loaded_scd = 1
 
 " parse configuration variables
-let s:scd_command = exists('g:scd_command') ? g:scd_command : 'scd'
-let s:scd_executable = (executable(s:scd_command) == 1)
+let s:scd_command = exists('g:scd_command') ? g:scd_command :
+            \ (1 == executable('scd')) ? 'scd' :
+            \ fnamemodify(resolve(expand('<sfile>')), ':h:h:h') . '/bin/scd'
 let s:scd_autoindex = exists('g:scd_autoindex') ? g:scd_autoindex : 1
-let s:scd_autoindex = s:scd_autoindex && s:scd_executable
+let s:scd_autoindex = s:scd_autoindex && (1 == executable(s:scd_command))
 
 " define the Scd commands
 command! -complete=custom,s:ScdComplete -nargs=* Slcd
