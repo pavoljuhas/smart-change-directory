@@ -1,5 +1,4 @@
 #!/bin/zsh -f
-# $Id$
 
 emulate -L zsh
 if [[ $(whence -w $0) == *:' 'command ]]; then

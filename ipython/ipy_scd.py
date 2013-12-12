@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# $Id$
 
 """This module defines the "%scd" magic command in an IPython session.
 The %scd or smart-cd command can find and change to any directory,
