@@ -13,7 +13,7 @@ fi
 ## If the scd function exists, define a change-directory-hook function
 ## to record visited directories in the scd index.
 if [[ ${+functions[scd]} == 1 ]]; then
-    scd_chpwd_hook() { scd --add . }
+    scd_chpwd_hook() { scd --add $PWD }
     autoload add-zsh-hook
     add-zsh-hook chpwd scd_chpwd_hook
 fi
