@@ -1,7 +1,7 @@
 " scd.vim -- Vim plugin for Smart Change of Directory
-" Date: 2013-12-06
+" Date: 2014-01-11
 " Maintainer: Pavol Juhas <pavol.juhas@gmail.com>
-" URL: http://code.google.com/p/smart-change-directory/
+" URL: https://github.com/pavoljuhas/smart-change-directory/
 "
 " Installation: Drop this file to the Vim plugin directory or source
 "   it from the .vimrc.  Copy the scd z-shell script to some directory
@@ -19,7 +19,7 @@
 "   * Linux or other Unix-like operating system (MAC does qualify)
 "   * zsh, the z-shell installed (usually a "zsh" package in Linux)
 "   * scd, the scd z-shell script installed in the PATH
-"     scd is available at http://code.google.com/p/smart-change-directory/
+"     scd is available at https://github.com/pavoljuhas/smart-change-directory/
 "
 " Examples: these assume that target directories are in the scd index
 "
