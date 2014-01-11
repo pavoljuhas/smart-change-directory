@@ -49,9 +49,9 @@ let s:scd_autoindex = exists('g:scd_autoindex') ? g:scd_autoindex : 1
 let s:scd_autoindex = s:scd_autoindex && (1 == executable(s:scd_command))
 
 " define the Scd commands
-command! -complete=custom,s:ScdComplete -nargs=* Slcd
-            \ call <SID>ScdFun("cd", <f-args>)
 command! -complete=custom,s:ScdComplete -nargs=* Scd
+            \ call <SID>ScdFun("cd", <f-args>)
+command! -complete=custom,s:ScdComplete -nargs=* Slcd
             \ call <SID>ScdFun("lcd", <f-args>)
 
 " remember the last directory to reduce scd calls when autoindexing.
