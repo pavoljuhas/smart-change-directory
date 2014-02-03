@@ -1,7 +1,7 @@
-## Try to load scd as a shell function either from the FPATH or from PATH
+## Try to load scd as a shell function either from FPATH or from PATH
 ## if installed at either place.  Complain if scd cannot be found.
 if ( found=( ${^fpath}/scd(N-.) ) && [[ -n ${found} ]] ); then
-    autoload scd 
+    autoload scd
 elif fpath=( ${fpath} =scd(:h) ); then
     autoload +X scd || unfunction -m scd
     fpath[-1]=( )
@@ -24,4 +24,4 @@ alias scd='noglob scd'
 
 
 ## Load the directory aliases created by scd if any.
-[[ -f ~/.scdalias.zsh ]] && source ~/.scdalias.zsh
+if [[ -s ~/.scdalias.zsh ]]; then source ~/.scdalias.zsh; fi
