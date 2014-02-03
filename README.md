@@ -56,7 +56,7 @@ scd [options] [pattern1 pattern2 ...]
 1.  Make sure that Z shell is installed.  On Linux it is usually the `zsh`
     package.
 
-2.  Copy or symlink the [bin/scd](blob/master/bin/scd) script to some
+2.  Copy or symlink the [bin/scd](bin/scd) script to some
     directory in the PATH.  Make sure `scd` has executable permissions set or
     add them with `chmod +x scd`.
 
@@ -64,7 +64,7 @@ scd [options] [pattern1 pattern2 ...]
 
 4.  Edit the startup file for your shell, e.g., `.bashrc` for `bash`,
     and have it source the corresponding scd setup file from
-    [shellrcfiles](blob/master/shellrcfiles).
+    [shellrcfiles](shellrcfiles).
     ```sh
     source ~/Downloads/smart-change-directory/shellrcfiles/bashrc_scd
     ```
@@ -106,7 +106,7 @@ scd xray
 
 ## Installation as Vim plugin
 
-1.  Copy or symlink [vim/plugin/scd.vim](blob/master/vim/plugin/scd.vim)
+1.  Copy or symlink [vim/plugin/scd.vim](vim/plugin/scd.vim)
     file to the `~/.vim/plugin/` directory or source it from `.vimrc`.
 
 2.  If `scd` is not in the PATH, set the `g:scd_command` variable in `.vimrc`
@@ -147,7 +147,7 @@ scd xray
 
 ## Installation as IPython extension
 
-1. Copy or symlink [ipython/ipy_scd.py](blob/master/ipython/ipy_scd.py)
+1. Copy or symlink [ipython/ipy_scd.py](ipython/ipy_scd.py)
    to some directory in Python module path.
 
 2. In IPython terminal session do `%load_ext ipy_scd`
