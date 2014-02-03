@@ -41,10 +41,18 @@ if exists("loaded_scd") || &cp
 endif
 let loaded_scd = 1
 
-" parse configuration variables
+" Parse configuration variables ----------------------------------------------
+
+" expected relative location of the scd script within Git bundle
+let s:rel_cmd = fnamemodify(resolve(expand('<sfile>')), ':h:h:h') . '/bin/scd'
+" Resolve command name for the z-shell scd script: (i) use g:scd_command if
+" defined, (ii) when this file is symlinked or scd is not in the PATH, check
+" at the relative location, (iii) just fall back to scd.
 let s:scd_command = exists('g:scd_command') ? g:scd_command :
-            \ (1 == executable('scd')) ? 'scd' :
-            \ fnamemodify(resolve(expand('<sfile>')), ':h:h:h') . '/bin/scd'
+        \ (('link' == getftype(expand('<sfile>')) || 1 != executable('scd'))) &&
+        \ (1 == executable(s:rel_cmd)) ? s:rel_cmd : 'scd'
+unlet s:rel_cmd
+
 let s:scd_autoindex = exists('g:scd_autoindex') ? g:scd_autoindex : 1
 let s:scd_autoindex = s:scd_autoindex && (1 == executable(s:scd_command))
 
