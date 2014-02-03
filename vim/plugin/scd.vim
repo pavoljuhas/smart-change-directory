@@ -3,36 +3,46 @@
 " Maintainer: Pavol Juhas <pavol.juhas@gmail.com>
 " URL: https://github.com/pavoljuhas/smart-change-directory/
 "
-" Installation: Drop this file to the Vim plugin directory or source
-"   it from the .vimrc.  Copy the scd z-shell script to some directory
-"   in the PATH or use the g:scd_command variable to specify its location.
-"   Make sure the scd script has its executable permission set.
+" Installation:
+"   (A) Manual
+"   Drop this file to the Vim plugin directory or source it from the .vimrc.
+"   Copy the scd z-shell script to some directory in the PATH or use the
+"   g:scd_command variable to specify its location.  Make sure the z-shell
+"   scd script has executable permission set.
 "
-"   This plugin makes Vim automatically add visited directories to
-"   the scd index after each :cd command in the session.  This runs
-"   a background system command "scd -a ." when Vim becomes idle.
-"   To turn the indexing off, add the following line to the .vimrc file:
+"   (B) Installation from Git bundle
+"   Create symbolic link to this file in the Vim plugin directory, e.g.,
+"       ln -si $PWD/scd.vim ~/.vim/plugin/
+"   The scd z-shell script will be located relative to the absolute
+"   path of scd.vim.
+"
+"   This plugin automatically adds visited directories to the scd index
+"   after each :cd command session.  This is accomplished by executing
+"   background system command "scd -a ." when Vim becomes idle.
+"   To turn auto-indexing off, add the following line to the .vimrc file:
 "
 "       let g:scd_autoindex = 0
 "
 " Requirements:
-"   * Linux or other Unix-like operating system (MAC does qualify)
+"   * Linux, Mac OS X or other Unix-like operating system
 "   * zsh, the z-shell installed (usually a "zsh" package in Linux)
-"   * scd, the scd z-shell script installed in the PATH
+"   * scd, the scd z-shell script installed in the PATH or
+"     g:scd_command set to its full path.
 "     scd is available at https://github.com/pavoljuhas/smart-change-directory/
 "
-" Examples: these assume that target directories are in the scd index
+" Examples: these assume that target directories are already in the scd index
 "
 "   :Scd vi ftpl    " jump to the ~/.vim/ftplugin/ directory
 "   :Scd doc        " change to the most recently visited doc directory
-"   :Scd in(#e)     " change to the most recently visited doc directory
+"   :Scd in(#e)     " jump to recent directory ending in 'in'
 "   :Scd            " show selection menu of frequently used directories
 "   :Scd -v         " show selection menu with directory ranking
 "   :Slcd           " same as Scd, but use the :lcd Vim command
 "   :Scd --help     " display usage info for the scd script
 "   :Scd -ar ~/.vim " recursively index ~/.vim/ and its subdirectories
+"   :Scd <Tab>      " complete scd-defined directory aliases
 "
-" Configuration: this plugin consults the following Vim variables:
+" Configuration: this plugin honors the following global variables:
 "   g:scd_autoindex     flag for indexing the :cd visited directories [1]
 "   g:scd_command       path to the scd z-shell script ["scd"]
 
@@ -56,16 +66,16 @@ unlet s:rel_cmd
 let s:scd_autoindex = exists('g:scd_autoindex') ? g:scd_autoindex : 1
 let s:scd_autoindex = s:scd_autoindex && (1 == executable(s:scd_command))
 
-" define the Scd commands
+" Define user Scd commands ---------------------------------------------------
+
 command! -complete=custom,s:ScdComplete -nargs=* Scd
             \ call <SID>ScdFun("cd", <f-args>)
 command! -complete=custom,s:ScdComplete -nargs=* Slcd
             \ call <SID>ScdFun("lcd", <f-args>)
 
-" remember the last directory to reduce scd calls when autoindexing.
-let s:last_directory = getcwd()
+" Implementation -------------------------------------------------------------
 
-" this function does all the work
+" main interface to the z-shell script
 function! s:ScdFun(cdcmd, ...)
     let qargs = map(copy(a:000),
                 \ '(v:val[0] == "~") ? v:val : shellescape(v:val)')
@@ -102,7 +112,10 @@ function! s:ScdFun(cdcmd, ...)
     pwd
 endfunction
 
-" Take care of autoindexing
+" Indexing and auto-indexing -------------------------------------------------
+
+" Remember startup directory to detect directory change.
+let s:last_directory = getcwd()
 
 function! s:ScdAddChangedDir()
     if s:last_directory == getcwd()
@@ -112,20 +125,20 @@ function! s:ScdAddChangedDir()
     call system(s:scd_command . ' -a . &')
 endfunction
 
-" First remove all scd related autocommands.
+" First remove all scd-related autocommands.
 augroup ScdAutoCommands
     autocmd!
 augroup END
 augroup! ScdAutoCommands
 
-" If autoindex is on, watch for the CursorHold event.
+" If autoindex is enabled, add autocommand to check for directory change.
 if s:scd_autoindex
     augroup ScdAutoCommands
         autocmd CursorHold * call s:ScdAddChangedDir()
     augroup END
 endif
 
-" Completion function for aliases and directory names
+" Completion -----------------------------------------------------------------
 
 function! s:ScdComplete(A, L, P)
     let aliases = {'a' : s:ScdLoadAliases()}
