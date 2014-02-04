@@ -189,7 +189,6 @@ scd xray
 </dl>
 
 # ENVIRONMENT
------------
 
 <dl><dt>
 SCD_HISTFILE</dt><dd>
