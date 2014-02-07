@@ -79,16 +79,16 @@ def do_scd(self, arg):
     component.  Display a selection menu in case of multiple matches.
 
     Options:
-      -a, --add         add specified directories to the directory index
-      --unindex         remove specified directories from the index
-      -r, --recursive   applied options --add or --unindex recursively
-      --alias=ALIAS     create alias for the current or specified directory and
-                        store it in ~/.scdalias.zsh
-      --unalias         remove ALIAS definition for the current or specified
-                        directory from ~/.scdalias.zsh
-      --list            show matching directories and exit
-      -v, --verbose     display directory rank in the selection menu
-      -h, --help        display this message and exit
+    -a, --add         add specified directories to the directory index
+    --unindex         remove specified directories from the index
+    -r, --recursive   apply options --add or --unindex recursively
+    --alias=ALIAS     create alias for the current or specified directory and
+                      store it in ~/.scdalias.zsh
+    --unalias         remove ALIAS definition for the current or specified
+                      directory from ~/.scdalias.zsh
+    --list            show matching directories and exit
+    -v, --verbose     display directory rank in the selection menu
+    -h, --help        display this message and exit
     '''
     import os
     import subprocess
