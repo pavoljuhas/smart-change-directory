@@ -121,7 +121,7 @@ if [[ -n $opt_unalias ]]; then
     return $?
 fi
 
-# Rewrite the history file if it is at least 20% oversized
+# Rewrite directory index if it is at least 20% oversized
 if [[ -s $SCD_HISTFILE ]] && \
 (( $(wc -l <$SCD_HISTFILE) > 1.2 * $SCD_HISTSIZE )); then
     m=( ${(f)"$(<$SCD_HISTFILE)"} )
@@ -129,16 +129,12 @@ if [[ -s $SCD_HISTFILE ]] && \
 fi
 
 # Internal functions are prefixed with "_scd_Y19oug_".
-# The "record" function adds a non-repeating directory to the history
-# and turns on history writing.
+# The "record" function adds its arguments to the directory index.
 _scd_Y19oug_record() {
-    while [[ -n $1 && $1 == ${history[$HISTCMD]} ]]; do
-        shift
-    done
-    if [[ $# != 0 ]]; then
-        ( umask 077; : >>| $SCD_HISTFILE )
-        p=": ${EPOCHSECONDS}:0;"
-        print -lr -- ${p}${^*} >> $SCD_HISTFILE
+    if [[ $# -gt 0 ]]; then
+        ( umask 077
+          p=": ${EPOCHSECONDS}:0;"
+          print -lr -- ${p}${^*} >>| $SCD_HISTFILE )
     fi
 }
 
