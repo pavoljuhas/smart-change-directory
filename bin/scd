@@ -37,7 +37,7 @@ local SCD_ALIAS=~/.scdalias.zsh
 local ICASE a d m p i tdir maxrank threshold
 local opt_help opt_add opt_unindex opt_recursive opt_verbose
 local opt_alias opt_unalias opt_list
-local -A drank dalias dkey
+local -A drank dalias
 local dmatching
 
 setopt extendedhistory extendedglob noautonamedirs brace_ccl
@@ -194,19 +194,12 @@ fi
 
 # The "action" function is called when there is just one target directory.
 _scd_Y19oug_action() {
-    if [[ -n $opt_list ]]; then
-        for d; do
-            a=${(k)dalias[(r)${d}]}
-            print -r -- "# $a"
-            print -r -- $d
-        done
-    elif [[ $# == 1 ]]; then
-        if [[ -z $SCD_SCRIPT && -n $RUNNING_AS_COMMAND ]]; then
-            print -u2 "Warning: running as command with SCD_SCRIPT undefined."
-        fi
-        [[ -n $SCD_SCRIPT ]] && (umask 077;
-            print -r "cd ${(q)1}" >| $SCD_SCRIPT)
-        cd $1
+    cd $1 || return $?
+    if [[ -z $SCD_SCRIPT && -n $RUNNING_AS_COMMAND ]]; then
+        print -u2 "Warning: running as command with SCD_SCRIPT undefined."
+    fi
+    if [[ -n $SCD_SCRIPT ]]; then
+        print -r "cd ${(q)1}" >| $SCD_SCRIPT
     fi
 }
 
@@ -302,42 +295,46 @@ threshold=$(( maxrank * SCD_THRESHOLD ))
 dmatching=( ${^dmatching}(Ne:'(( ${drank[$REPLY]} >= threshold ))':) )
 
 ## process whatever directories that remained
-case ${#dmatching} in
-(0)
+if [[ ${#dmatching} == 0 ]]; then
     print -u2 "no matching directory"
     return 1
-    ;;
-(1)
+fi
+
+## build formatted directory aliases for selection menu or list display
+for d in $dmatching; do
+    if [[ -n ${opt_verbose} ]]; then
+        dalias[$d]=$(printf "%.3g %s" ${drank[$d]} $d)
+    else
+        dalias[$d]=$(print -Dr -- $d)
+    fi
+done
+
+## process the --list option
+if [[ -n $opt_list ]]; then
+    for d in $dmatching; do
+        print -r -- "# ${dalias[$d]}"
+        print -r -- $d
+    done
+    return
+fi
+
+## process single directory match
+if [[ ${#dmatching} == 1 ]]; then
     _scd_Y19oug_action $dmatching
     return $?
-    ;;
-(*)
-    # build a list of strings to be displayed in the selection menu
-    m=( ${(f)"$(print -lD ${dmatching})"} )
-    if [[ -n $opt_verbose ]]; then
-        for i in {1..${#dmatching}}; do
-            d=${dmatching[i]}
-            m[i]=$(printf "%.3g %s" ${drank[$d]} $d)
-        done
-    fi
-    # build a map of string names to actual directory paths
-    for i in {1..${#m}}; dalias[${m[i]}]=${dmatching[i]}
-    # opt_list - output matching directories and exit
-    if [[ -n $opt_list ]]; then
-        _scd_Y19oug_action ${dmatching}
-        return
-    fi
-    # finally use the selection menu to get the answer
-    a=( {a-z} {A-Z} )
-    p=( )
-    for i in {1..${#m}}; do
-        [[ -n ${a[i]} ]] || break
-        dkey[${a[i]}]=${dalias[$m[i]]}
-        p+="${a[i]}) ${m[i]}"
-    done
-    print -c -r -- $p
-    if read -s -k 1 d && [[ -n ${dkey[$d]} ]]; then
-        _scd_Y19oug_action ${dkey[$d]}
-    fi
+fi
+
+## here we have multiple matches - display selection menu
+a=( {a-z} {A-Z} )
+p=( )
+for i in {1..${#dmatching}}; do
+    [[ -n ${a[i]} ]] || break
+    p+="${a[i]}) ${dalias[${dmatching[i]}]}"
+done
+
+print -c -r -- $p
+
+if read -s -k 1 d && [[ ${i::=${a[(I)$d]}} -gt 0 ]]; then
+    _scd_Y19oug_action ${dmatching[i]}
     return $?
-esac
+fi
