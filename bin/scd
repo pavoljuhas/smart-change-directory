@@ -206,10 +206,7 @@ _scd_Y19oug_action() {
         fi
         [[ -n $SCD_SCRIPT ]] && (umask 077;
             print -r "cd ${(q)1}" >| $SCD_SCRIPT)
-        [[ -N $SCD_HISTFILE ]] && touch -a $SCD_HISTFILE
         cd $1
-        # record the new directory unless already done in some chpwd hook
-        [[ -N $SCD_HISTFILE ]] || _scd_Y19oug_record $PWD
     fi
 }
 

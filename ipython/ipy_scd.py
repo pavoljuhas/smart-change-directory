@@ -101,7 +101,7 @@ def do_scd(self, arg):
     retcode = subprocess.call(args, env=env)
     cmd = scdfile.read()
     if retcode == 0 and cmd.startswith('cd '):
-        _cdcommands.cd(cmd[3:])
+        do_cd(self, cmd[3:])
     return
 
 
