@@ -204,96 +204,99 @@ _scd_Y19oug_action() {
     fi
 }
 
-# handle different argument scenarios ----------------------------------------
+# Match and rank patterns to the index file
+# set global arrays dmatching and drank
+_scd_Y19oug_match() {
+    ## single argument that is an existing directory or directory alias
+    if [[ $# == 1 ]] && \
+        [[ -d ${d::=$1} || -d ${d::=${nameddirs[$1]}} ]] && [[ -x $d ]];
+    then
+        _scd_Y19oug_abspath dmatching $d
+        drank[${dmatching[1]}]=1
+        return
+    fi
 
-## single argument that is an existing directory
-if [[ $# == 1 && -d $1 && -x $1 ]]; then
-    _scd_Y19oug_action $1
-    return $?
-## single argument that is an alias
-elif [[ $# == 1 && -d ${d::=${nameddirs[$1]}} ]]; then
-    _scd_Y19oug_action $d
-    return $?
-fi
+    # ignore case unless there is an argument with an uppercase letter
+    [[ "$*" == *[[:upper:]]* ]] || ICASE='(#i)'
 
-# ignore case unless there is an argument with an uppercase letter
-[[ "$*" == *[[:upper:]]* ]] || ICASE='(#i)'
+    # calculate rank of all directories in the SCD_HISTFILE and keep it as drank
+    # include a dummy entry for splitting of an empty string is buggy
+    [[ -s $SCD_HISTFILE ]] && drank=( ${(f)"$(
+        print -l /dev/null -10
+        <$SCD_HISTFILE \
+        awk -v epochseconds=$EPOCHSECONDS -v meanlife=$SCD_MEANLIFE '
+            BEGIN { FS = "[:;]"; }
+            length($0) < 4096 && $2 > 0 {
+                tau = 1.0 * ($2 - epochseconds) / meanlife;
+                if (tau < -4.61)  tau = -4.61;
+                prec = exp(tau);
+                sub(/^[^;]*;/, "");
+                if (NF)  ptot[$0] += prec;
+            }
+            END { for (di in ptot)  { print di; print ptot[di]; } }'
+        )"}
+    )
+    unset "drank[/dev/null]"
 
-# calculate rank of all directories in the SCD_HISTFILE and keep it as drank
-# include a dummy entry for splitting of an empty string is buggy
-[[ -s $SCD_HISTFILE ]] && drank=( ${(f)"$(
-    print -l /dev/null -10
-    <$SCD_HISTFILE \
-    awk -v epochseconds=$EPOCHSECONDS -v meanlife=$SCD_MEANLIFE '
-        BEGIN { FS = "[:;]"; }
-        length($0) < 4096 && $2 > 0 {
-            tau = 1.0 * ($2 - epochseconds) / meanlife;
-            if (tau < -4.61)  tau = -4.61;
-            prec = exp(tau);
-            sub(/^[^;]*;/, "");
-            if (NF)  ptot[$0] += prec;
-        }
-        END { for (di in ptot)  { print di; print ptot[di]; } }'
-    )"}
-)
-unset "drank[/dev/null]"
+    # filter drank to the entries that match all arguments
+    for a; do
+        p=${ICASE}"*${a}*"
+        drank=( ${(kv)drank[(I)${~p}]} )
+    done
 
-# filter drank to the entries that match all arguments
-for a; do
-    p=${ICASE}"*${a}*"
-    drank=( ${(kv)drank[(I)${~p}]} )
-done
+    # build a list of matching directories reverse-sorted by their probabilities
+    dmatching=( ${(f)"$(
+        for d p in ${(kv)drank}; do
+            print -r -- "$p $d";
+        done | sort -grk1 | cut -d ' ' -f 2-
+        )"}
+    )
 
-# build a list of matching directories reverse-sorted by their probabilities
-dmatching=( ${(f)"$(
-    for d p in ${(kv)drank}; do
-        print -r -- "$p $d";
-    done | sort -grk1 | cut -d ' ' -f 2-
-    )"}
-)
+    # if some directory paths match all patterns in order, discard all others
+    p=${ICASE}"*${(j:*:)argv}*"
+    m=( ${(M)dmatching:#${~p}} )
+    [[ -d ${m[1]} ]] && dmatching=( $m )
+    # if some directory names match last pattern, discard all others
+    p=${ICASE}"*${(j:*:)argv}[^/]#"
+    m=( ${(M)dmatching:#${~p}} )
+    [[ -d ${m[1]} ]] && dmatching=( $m )
+    # if some directory names match all patterns, discard all others
+    m=( $dmatching )
+    for a; do
+        p=${ICASE}"*/[^/]#${a}[^/]#"
+        m=( ${(M)m:#${~p}} )
+    done
+    [[ -d ${m[1]} ]] && dmatching=( $m )
+    # if some directory names match all patterns in order, discard all others
+    p=${ICASE}"/*${(j:[^/]#:)argv}[^/]#"
+    m=( ${(M)dmatching:#${~p}} )
+    [[ -d ${m[1]} ]] && dmatching=( $m )
 
-# if some directory paths match all patterns in order, discard all others
-p=${ICASE}"*${(j:*:)argv}*"
-m=( ${(M)dmatching:#${~p}} )
-[[ -d ${m[1]} ]] && dmatching=( $m )
-# if some directory names match last pattern, discard all others
-p=${ICASE}"*${(j:*:)argv}[^/]#"
-m=( ${(M)dmatching:#${~p}} )
-[[ -d ${m[1]} ]] && dmatching=( $m )
-# if some directory names match all patterns, discard all others
-m=( $dmatching )
-for a; do
-    p=${ICASE}"*/[^/]#${a}[^/]#"
-    m=( ${(M)m:#${~p}} )
-done
-[[ -d ${m[1]} ]] && dmatching=( $m )
-# if some directory names match all patterns in order, discard all others
-p=${ICASE}"/*${(j:[^/]#:)argv}[^/]#"
-m=( ${(M)dmatching:#${~p}} )
-[[ -d ${m[1]} ]] && dmatching=( $m )
+    # do not match $HOME or $PWD when run without arguments
+    if [[ $# == 0 ]]; then
+        dmatching=( ${dmatching:#(${HOME}|${PWD})} )
+    fi
 
-# do not match $HOME or $PWD when run without arguments
-if [[ $# == 0 ]]; then
-    dmatching=( ${dmatching:#(${HOME}|${PWD})} )
-fi
+    # keep at most SCD_MENUSIZE of matching and valid directories
+    m=( )
+    for d in $dmatching; do
+        [[ ${#m} == $SCD_MENUSIZE ]] && break
+        [[ -d $d && -x $d ]] && m+=$d
+    done
+    dmatching=( $m )
 
-# keep at most SCD_MENUSIZE of matching and valid directories
-m=( )
-for d in $dmatching; do
-    [[ ${#m} == $SCD_MENUSIZE ]] && break
-    [[ -d $d && -x $d ]] && m+=$d
-done
-dmatching=( $m )
+    # find the maximum rank
+    maxrank=0.0
+    for d in $dmatching; do
+        [[ ${drank[$d]} -lt maxrank ]] || maxrank=${drank[$d]}
+    done
 
-# find the maximum rank
-maxrank=0.0
-for d in $dmatching; do
-    [[ ${drank[$d]} -lt maxrank ]] || maxrank=${drank[$d]}
-done
+    # discard all directories below the rank threshold
+    threshold=$(( maxrank * SCD_THRESHOLD ))
+    dmatching=( ${^dmatching}(Ne:'(( ${drank[$REPLY]} >= threshold ))':) )
+}
 
-# discard all directories below the rank threshold
-threshold=$(( maxrank * SCD_THRESHOLD ))
-dmatching=( ${^dmatching}(Ne:'(( ${drank[$REPLY]} >= threshold ))':) )
+_scd_Y19oug_match $*
 
 ## process whatever directories that remained
 if [[ ${#dmatching} == 0 ]]; then
