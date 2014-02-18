@@ -1,10 +1,11 @@
 #!/bin/zsh -f
 
 emulate -L zsh
+local EXIT=return
 if [[ $(whence -w $0) == *:' 'command ]]; then
     emulate -R zsh
-    alias return=exit
     local RUNNING_AS_COMMAND=1
+    EXIT=exit
 fi
 
 local DOC='scd -- smart change to a recently used directory
@@ -56,11 +57,11 @@ zparseopts -D -- a=opt_add -add=opt_add -unindex=opt_unindex \
     r=opt_recursive -recursive=opt_recursive \
     -alias:=opt_alias -unalias=opt_unalias -list=opt_list \
     v=opt_verbose -verbose=opt_verbose h=opt_help -help=opt_help \
-    || return $?
+    || $EXIT $?
 
 if [[ -n $opt_help ]]; then
     print $DOC
-    return
+    $EXIT
 fi
 
 # load directory aliases if they exist
@@ -80,7 +81,7 @@ _scd_Y19oug_abspath() {
 if [[ -n $opt_alias ]]; then
     if [[ -n $1 && ! -d $1 ]]; then
         print -u2 "'$1' is not a directory"
-        return 1
+        $EXIT 1
     fi
     a=${opt_alias[-1]#=}
     _scd_Y19oug_abspath d ${1:-$PWD}
@@ -93,19 +94,19 @@ if [[ -n $opt_alias ]]; then
         hash -d -- $a=$d
         hash -dL >| $SCD_ALIAS
     )
-    return $?
+    $EXIT $?
 fi
 
 # undefine directory alias
 if [[ -n $opt_unalias ]]; then
     if [[ -n $1 && ! -d $1 ]]; then
         print -u2 "'$1' is not a directory"
-        return 1
+        $EXIT 1
     fi
     _scd_Y19oug_abspath a ${1:-$PWD}
     a=$(print -rD ${a})
     if [[ $a != [~][^/]## ]]; then
-        return
+        $EXIT
     fi
     a=${a#[~]}
     # unalias in the current shell, update alias file if successful
@@ -118,7 +119,7 @@ if [[ -n $opt_unalias ]]; then
             hash -dL >| $SCD_ALIAS
         )
     fi
-    return $?
+    $EXIT $?
 fi
 
 # Rewrite directory index if it is at least 20% oversized
@@ -142,7 +143,7 @@ if [[ -n $opt_add ]]; then
     for a; do
         if [[ ! -d $a ]]; then
             print -u 2 "Directory $a does not exist"
-            return 2
+            $EXIT 2
         fi
     done
     _scd_Y19oug_abspath m ${*:-$PWD}
@@ -154,13 +155,13 @@ if [[ -n $opt_add ]]; then
             print "[done]"
         done
     fi
-    return
+    $EXIT
 fi
 
 # take care of removing entries from the directory index
 if [[ -n $opt_unindex ]]; then
     if [[ ! -s $SCD_HISTFILE ]]; then
-        return
+        $EXIT
     fi
     # expand existing directories in the argument list
     for i in {1..$#}; do
@@ -186,10 +187,10 @@ if [[ -n $opt_unindex ]]; then
             }
         }
         { print $0 }
-        ' $SCD_HISTFILE ${*:-$PWD} )" || return $?
+        ' $SCD_HISTFILE ${*:-$PWD} )" || $EXIT $?
     : >| ${SCD_HISTFILE}
     [[ ${#m} == 0 ]] || print -r -- $m >> ${SCD_HISTFILE}
-    return
+    $EXIT
 fi
 
 # The "action" function is called when there is just one target directory.
@@ -297,7 +298,7 @@ dmatching=( ${^dmatching}(Ne:'(( ${drank[$REPLY]} >= threshold ))':) )
 ## process whatever directories that remained
 if [[ ${#dmatching} == 0 ]]; then
     print -u2 "no matching directory"
-    return 1
+    $EXIT 1
 fi
 
 ## build formatted directory aliases for selection menu or list display
@@ -315,13 +316,13 @@ if [[ -n $opt_list ]]; then
         print -r -- "# ${dalias[$d]}"
         print -r -- $d
     done
-    return
+    $EXIT
 fi
 
 ## process single directory match
 if [[ ${#dmatching} == 1 ]]; then
     _scd_Y19oug_action $dmatching
-    return $?
+    $EXIT $?
 fi
 
 ## here we have multiple matches - display selection menu
@@ -336,5 +337,5 @@ print -c -r -- $p
 
 if read -s -k 1 d && [[ ${i::=${a[(I)$d]}} -gt 0 ]]; then
     _scd_Y19oug_action ${dmatching[i]}
-    return $?
+    $EXIT $?
 fi
