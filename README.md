@@ -156,7 +156,7 @@ scd xray
    `ipy_scd` for every IPython session, modify
    `.../profile_default/ipython_config.py` so that it contains
    ```Python
-   c.InteractiveShellApp.extensions = ['ipy_scd']
+   c.TerminalIPythonApp.extensions = ['ipy_scd']
    ```
 
    In IPython 0.10, which does not support extensions, import `ipy_scd` from
