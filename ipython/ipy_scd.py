@@ -101,7 +101,9 @@ def do_scd(self, arg):
     retcode = subprocess.call(args, env=env)
     cmd = scdfile.read()
     if retcode == 0 and cmd.startswith('cd '):
-        do_cd(self, cmd[3:])
+        _cdcommands.cd(cmd[3:])
+        cwd = shlex.split(cmd[3:])[0]
+        _scd_record_cwd(cwd)
     return
 
 
@@ -195,16 +197,17 @@ _scd_active = False
 if not isipython010:
     del scdactivate
 
-def _scd_record_cwd():
+def _scd_record_cwd(cwd=None):
     if not _scd_active:  return
     import os
     import subprocess
     global _scd_last_directory
-    cwd = os.getcwd()
+    if cwd is None:
+        cwd = os.getcwd()
     if cwd == _scd_last_directory:
         return
     _scd_last_directory = cwd
-    args = [scd_executable, '--add', '.']
+    args = [scd_executable, '--add', cwd]
     subprocess.call(args)
     return
 _scd_last_directory = ''
