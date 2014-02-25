@@ -80,7 +80,7 @@ _scd_Y19oug_abspath() {
 # define directory alias
 if [[ -n $opt_alias ]]; then
     if [[ -n $1 && ! -d $1 ]]; then
-        print -u2 "'$1' is not a directory"
+        print -u2 "'$1' is not a directory."
         $EXIT 1
     fi
     a=${opt_alias[-1]#=}
@@ -100,7 +100,7 @@ fi
 # undefine directory alias
 if [[ -n $opt_unalias ]]; then
     if [[ -n $1 && ! -d $1 ]]; then
-        print -u2 "'$1' is not a directory"
+        print -u2 "'$1' is not a directory."
         $EXIT 1
     fi
     _scd_Y19oug_abspath a ${1:-$PWD}
@@ -140,9 +140,9 @@ _scd_Y19oug_record() {
 }
 
 if [[ -n $opt_add ]]; then
-    for a; do
-        if [[ ! -d $a ]]; then
-            print -u 2 "Directory $a does not exist"
+    for d; do
+        if [[ ! -d $d ]]; then
+            print -u2 "Directory '$d' does not exist."
             $EXIT 2
         fi
     done
@@ -300,7 +300,7 @@ _scd_Y19oug_match $*
 
 ## process whatever directories that remained
 if [[ ${#dmatching} == 0 ]]; then
-    print -u2 "no matching directory"
+    print -u2 "No matching directory."
     $EXIT 1
 fi
 
