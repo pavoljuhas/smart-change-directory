@@ -40,6 +40,7 @@ local opt_help opt_add opt_unindex opt_recursive opt_verbose
 local opt_alias opt_unalias opt_list
 local -A drank dalias
 local dmatching
+local last_directory
 
 setopt extendedhistory extendedglob noautonamedirs brace_ccl
 
@@ -129,9 +130,17 @@ if [[ -s $SCD_HISTFILE ]] && \
     print -lr -- ${m[-$SCD_HISTSIZE,-1]} >| ${SCD_HISTFILE}
 fi
 
+# Determine the last recorded directory
+if [[ -s ${SCD_HISTFILE} ]]; then
+    last_directory=${"$(tail -1 ${SCD_HISTFILE})"#*;}
+fi
+
 # Internal functions are prefixed with "_scd_Y19oug_".
 # The "record" function adds its arguments to the directory index.
 _scd_Y19oug_record() {
+    while [[ -n $last_directory && $1 == $last_directory ]]; do
+        shift
+    done
     if [[ $# -gt 0 ]]; then
         ( umask 077
           p=": ${EPOCHSECONDS}:0;"
