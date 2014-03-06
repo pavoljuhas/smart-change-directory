@@ -1,37 +1,43 @@
 " scd.vim -- Vim plugin for Smart Change of Directory
-" Date: 2014-01-11
+" Date: 2014-03-06
 " Maintainer: Pavol Juhas <pavol.juhas@gmail.com>
 " URL: https://github.com/pavoljuhas/smart-change-directory/
 "
+" Requirements:
+"
+"   * Linux, Mac OS X or other Unix-like operating system
+"   * Z shell (usually the "zsh" package in Linux)
+"
 " Installation:
+"
 "   (A) Manual
-"   Drop this file to the Vim plugin directory or source it from the .vimrc.
-"   Copy the scd z-shell script to some directory in the PATH or use the
-"   g:scd_command variable to specify its location.  Make sure the z-shell
-"   scd script has executable permission set.
+"   Drop this file to the Vim plugin directory or source it from .vimrc.
+"   Copy or symlink the bin/scd script to some directory in the PATH or
+"   set the g:scd_command variable to its location.  Make sure scd script
+"   has executable permissions set or add them with "chmod +x scd".
 "
 "   (B) Installation from Git bundle
-"   Create symbolic link to this file in the Vim plugin directory, e.g.,
+"   Navigate to the vim/plugin directory in the bundle and create symbolic
+"   link to this file in the Vim plugin directory, e.g.,
 "       ln -si $PWD/scd.vim ~/.vim/plugin/
-"   The scd z-shell script will be located relative to the absolute
-"   path of scd.vim.
+"   The bin/scd script will be then located relative to the absolute path
+"   of scd.vim.
 "
-"   This plugin automatically adds visited directories to the scd index
-"   after each :cd command session.  This is accomplished by executing
-"   background system command "scd -a ." when Vim becomes idle.
-"   To turn auto-indexing off, add the following line to the .vimrc file:
+" Notes:
+"
+"   This plugin adds visited directories to the scd index after each
+"   :cd command in the Vim session.  This is accomplished by executing
+"   background command "scd -a ." when Vim becomes idle.  This auto-indexing
+"   feature can be disabled by adding the following line to .vimrc:
 "
 "       let g:scd_autoindex = 0
 "
-" Requirements:
-"   * Linux, Mac OS X or other Unix-like operating system
-"   * zsh, the z-shell installed (usually a "zsh" package in Linux)
-"   * scd, the scd z-shell script installed in the PATH or
-"     g:scd_command set to its full path.
-"     scd is available at https://github.com/pavoljuhas/smart-change-directory/
+"   For best results activate scd also in the system shell as described at
+"   https://github.com/pavoljuhas/smart-change-directory#installation
 "
-" Examples: these assume that target directories are already in the scd index
+" Examples:
 "
+"   :Scd -ar ~/.vim " recursively index ~/.vim/ and its subdirectories
 "   :Scd vi ftpl    " jump to the ~/.vim/ftplugin/ directory
 "   :Scd doc        " change to the most recently visited doc directory
 "   :Scd in(#e)     " jump to recent directory ending in 'in'
@@ -39,10 +45,10 @@
 "   :Scd -v         " show selection menu with directory ranking
 "   :Slcd           " same as Scd, but use the :lcd Vim command
 "   :Scd --help     " display usage info for the scd script
-"   :Scd -ar ~/.vim " recursively index ~/.vim/ and its subdirectories
 "   :Scd <Tab>      " complete scd-defined directory aliases
 "
 " Configuration: this plugin honors the following global variables:
+"
 "   g:scd_autoindex     flag for indexing the :cd visited directories [1]
 "   g:scd_command       path to the scd z-shell script ["scd"]
 
