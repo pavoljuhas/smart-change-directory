@@ -4,10 +4,10 @@
 a Unix shell, [Vim](http://www.vim.org/) or [IPython](http://ipython.org/).
 
 `scd` is a Z shell (Zsh) script for changing to any directory with a few
-keystrokes.  `scd` keeps history of the visited directories, which
+keystrokes.  scd keeps history of the visited directories, which
 serves as an index of the known paths.  The directory index is updated after
 every `cd` command in the shell and can be also filled manually by running
-`scd -a`.  To switch to some directory, `scd` needs few fragments of the
+`scd -a`.  To switch to some directory, scd needs few fragments of the
 desired path to match with the index.  A selection menu is displayed in case
 of several matches, with a preference given to recently visited paths.  scd
 can create permanent directory aliases, which directly map to the target path.
