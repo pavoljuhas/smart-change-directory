@@ -1,6 +1,10 @@
 ## Define an "scd" shell function that runs the scd external command
 ## and changes to the selected directory.
 export SCD_SCRIPT=${HOME}/bin/.scd.go
+if ! test -d "${HOME}/bin"; then
+    export SCD_SCRIPT=/tmp/.scd-${UID}.go
+fi
+
 scd() {
     command scd "$@" && . "$SCD_SCRIPT"
 }

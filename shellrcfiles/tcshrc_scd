@@ -1,6 +1,9 @@
 ## Define an "scd" alias that runs the scd external command
 ## and changes to the selected directory.
 setenv SCD_SCRIPT ${HOME}/bin/.scd.go
+if ( ! -d ${HOME}/bin ) then
+    setenv SCD_SCRIPT /tmp/.scd-${uid}.go
+endif
 alias scd "scd \!* && source '${SCD_SCRIPT}'"
 
 
