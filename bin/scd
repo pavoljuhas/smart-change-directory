@@ -339,6 +339,7 @@ fi
 
 ## here we have multiple matches - display selection menu
 a=( {a-z} {A-Z} )
+a=( ${a[1,${#dmatching}]} )
 p=( )
 for i in {1..${#dmatching}}; do
     [[ -n ${a[i]} ]] || break
