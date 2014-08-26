@@ -68,7 +68,7 @@ fi
 # load directory aliases if they exist
 [[ -r $SCD_ALIAS ]] && source $SCD_ALIAS
 
-# Private functions are prefixed with _scd_Y19oug_.
+# Private internal functions are prefixed with _scd_Y19oug_.
 # Clean them up when the scd function returns.
 setopt localtraps
 trap 'unfunction -m "_scd_Y19oug_*"' EXIT
@@ -128,11 +128,43 @@ if [[ -n $opt_unalias ]]; then
     $EXIT $?
 fi
 
+# The "compress" function collapses repeated directories to
+# one entry with a time stamp that gives equivalent-probability.
+_scd_Y19oug_compress() {
+    awk -v epochseconds=$EPOCHSECONDS -v meanlife=$SCD_MEANLIFE '
+        BEGIN { FS = "[:;]"; }
+        length($0) < 4096 && $2 > 0 {
+            tau = 1.0 * ($2 - epochseconds) / meanlife;
+            if (tau < -4.61)  tau = -4.61;
+            prec = exp(tau);
+            sub(/^[^;]*;/, "");
+            if (NF)  {
+                dlist[last[$0]] = "";
+                dlist[NR] = $0;
+                last[$0] = NR;
+                ptot[$0] += prec;
+            }
+        }
+        END {
+            for (i = 1; i <= NR; ++i) {
+                d = dlist[i];
+                if (d) {
+                    ts = log(ptot[d]) * meanlife + epochseconds;
+                    printf(": %.0f:0;%s\n", ts, d);
+                }
+            }
+        }
+    ' $*
+}
+
 # Rewrite directory index if it is at least 20% oversized
 if [[ -s $SCD_HISTFILE ]] && \
 (( $(wc -l <$SCD_HISTFILE) > 1.2 * $SCD_HISTSIZE )); then
-    m=( ${(f)"$(<$SCD_HISTFILE)"} )
-    print -lr -- ${m[-$SCD_HISTSIZE,-1]} >| ${SCD_HISTFILE}
+    m=( ${(f)"$(_scd_Y19oug_compress $SCD_HISTFILE)"} )
+    if [[ $#m -gt $SCD_HISTSIZE ]]; then
+        m=( ${m[-$SCD_HISTSIZE,-1]} )
+    fi
+    print -lr -- $m >| ${SCD_HISTFILE}
 fi
 
 # Determine the last recorded directory
@@ -140,7 +172,6 @@ if [[ -s ${SCD_HISTFILE} ]]; then
     last_directory=${"$(tail -1 ${SCD_HISTFILE})"#*;}
 fi
 
-# Internal functions are prefixed with "_scd_Y19oug_".
 # The "record" function adds its arguments to the directory index.
 _scd_Y19oug_record() {
     while [[ -n $last_directory && $1 == $last_directory ]]; do
