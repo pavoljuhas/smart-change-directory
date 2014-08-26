@@ -68,6 +68,11 @@ fi
 # load directory aliases if they exist
 [[ -r $SCD_ALIAS ]] && source $SCD_ALIAS
 
+# Private functions are prefixed with _scd_Y19oug_.
+# Clean them up when the scd function returns.
+setopt localtraps
+trap 'unfunction -m "_scd_Y19oug_*"' EXIT
+
 # works faster than the (:a) modifier and is compatible with zsh 4.2.6
 _scd_Y19oug_abspath() {
     set -A $1 ${(ps:\0:)"$(
