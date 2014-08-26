@@ -135,14 +135,14 @@ _scd_Y19oug_compress() {
         BEGIN { FS = "[:;]"; }
         length($0) < 4096 && $2 > 0 {
             tau = 1.0 * ($2 - epochseconds) / meanlife;
-            if (tau < -4.61)  tau = -4.61;
-            prec = exp(tau);
+            if (tau < -6.9078)  tau = -6.9078;
+            prob = exp(tau);
             sub(/^[^;]*;/, "");
             if (NF)  {
                 dlist[last[$0]] = "";
                 dlist[NR] = $0;
                 last[$0] = NR;
-                ptot[$0] += prec;
+                ptot[$0] += prob;
             }
         }
         END {
@@ -275,10 +275,10 @@ _scd_Y19oug_match() {
             BEGIN { FS = "[:;]"; }
             length($0) < 4096 && $2 > 0 {
                 tau = 1.0 * ($2 - epochseconds) / meanlife;
-                if (tau < -4.61)  tau = -4.61;
-                prec = exp(tau);
+                if (tau < -6.9078)  tau = -6.9078;
+                prob = exp(tau);
                 sub(/^[^;]*;/, "");
-                if (NF)  ptot[$0] += prec;
+                if (NF)  ptot[$0] += prob;
             }
             END { for (di in ptot)  { print di; print ptot[di]; } }'
         )"}
