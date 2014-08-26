@@ -232,6 +232,8 @@ _scd_Y19oug_match() {
 
     # ignore case unless there is an argument with an uppercase letter
     [[ "$*" == *[[:upper:]]* ]] || ICASE='(#i)'
+    # support "$" as an anchor for the directory name ending
+    argv=( ${argv/(#m)?[$](#e)/${MATCH[1]}(#e)} )
 
     # calculate rank of all directories in the SCD_HISTFILE and keep it as drank
     # include a dummy entry for splitting of an empty string is buggy
