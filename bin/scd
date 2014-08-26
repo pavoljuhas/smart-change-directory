@@ -35,7 +35,7 @@ local SCD_THRESHOLD=${SCD_THRESHOLD:-0.005}
 local SCD_SCRIPT=${RUNNING_AS_COMMAND:+$SCD_SCRIPT}
 local SCD_ALIAS=~/.scdalias.zsh
 
-local ICASE a d m p i tdir maxrank threshold
+local ICASE a d m p i maxrank threshold
 local opt_help opt_add opt_unindex opt_recursive opt_verbose
 local opt_alias opt_unalias opt_list
 local -A drank dalias
@@ -254,9 +254,12 @@ _scd_Y19oug_match() {
 
     # filter drank to the entries that match all arguments
     for a; do
-        p=${ICASE}"*${a}*"
+        p=${ICASE}"*(${a})*"
         drank=( ${(kv)drank[(I)${~p}]} )
     done
+    # require at least one argument matches the directory name
+    p=${ICASE}"*(${(j:|:)argv})[^/]#"
+    drank=( ${(kv)drank[(I)${~p}]} )
 
     # build a list of matching directories reverse-sorted by their probabilities
     dmatching=( ${(f)"$(
@@ -265,26 +268,6 @@ _scd_Y19oug_match() {
         done | sort -grk1 | cut -d ' ' -f 2-
         )"}
     )
-
-    # if some directory paths match all patterns in order, discard all others
-    p=${ICASE}"*${(j:*:)argv}*"
-    m=( ${(M)dmatching:#${~p}} )
-    [[ -d ${m[1]} ]] && dmatching=( $m )
-    # if some directory names match last pattern, discard all others
-    p=${ICASE}"*${(j:*:)argv}[^/]#"
-    m=( ${(M)dmatching:#${~p}} )
-    [[ -d ${m[1]} ]] && dmatching=( $m )
-    # if some directory names match all patterns, discard all others
-    m=( $dmatching )
-    for a; do
-        p=${ICASE}"*/[^/]#${a}[^/]#"
-        m=( ${(M)m:#${~p}} )
-    done
-    [[ -d ${m[1]} ]] && dmatching=( $m )
-    # if some directory names match all patterns in order, discard all others
-    p=${ICASE}"/*${(j:[^/]#:)argv}[^/]#"
-    m=( ${(M)dmatching:#${~p}} )
-    [[ -d ${m[1]} ]] && dmatching=( $m )
 
     # do not match $HOME or $PWD when run without arguments
     if [[ $# == 0 ]]; then
