@@ -22,6 +22,8 @@ Options:
                     store it in ~/.scdalias.zsh
   --unalias         remove ALIAS definition for the current or specified
                     directory from ~/.scdalias.zsh
+  -A, --all         include all matching directories.  Disregard matching
+                    alias and filtering by threshold likelihood.
   --list            show matching directories and exit
   -v, --verbose     display directory rank in the selection menu
   -h, --help        display this message and exit
@@ -37,7 +39,7 @@ local SCD_ALIAS=~/.scdalias.zsh
 
 local ICASE a d m p i maxrank threshold
 local opt_help opt_add opt_unindex opt_recursive opt_verbose
-local opt_alias opt_unalias opt_list
+local opt_alias opt_unalias opt_all opt_list
 local -A drank dalias
 local dmatching
 local last_directory
@@ -56,7 +58,8 @@ zmodload -i zsh/zutil
 zmodload -i zsh/datetime
 zparseopts -D -- a=opt_add -add=opt_add -unindex=opt_unindex \
     r=opt_recursive -recursive=opt_recursive \
-    -alias:=opt_alias -unalias=opt_unalias -list=opt_list \
+    -alias:=opt_alias -unalias=opt_unalias \
+    A=opt_all -all=opt_all -list=opt_list \
     v=opt_verbose -verbose=opt_verbose h=opt_help -help=opt_help \
     || $EXIT $?
 
@@ -253,7 +256,7 @@ _scd_Y19oug_action() {
 # set global arrays dmatching and drank
 _scd_Y19oug_match() {
     ## single argument that is an existing directory or directory alias
-    if [[ $# == 1 ]] && \
+    if [[ -z $opt_all && $# == 1 ]] && \
         [[ -d ${d::=$1} || -d ${d::=${nameddirs[$1]}} ]] && [[ -x $d ]];
     then
         _scd_Y19oug_abspath dmatching $d
@@ -323,6 +326,9 @@ _scd_Y19oug_match() {
 
     # discard all directories below the rank threshold
     threshold=$(( maxrank * SCD_THRESHOLD ))
+    if [[ -n ${opt_all} ]]; then
+        threshold=0
+    fi
     dmatching=( ${^dmatching}(Ne:'(( ${drank[$REPLY]} >= threshold ))':) )
 }
 
