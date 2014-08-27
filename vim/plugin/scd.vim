@@ -40,7 +40,7 @@
 "   :Scd -ar ~/.vim " recursively index ~/.vim/ and its subdirectories
 "   :Scd vi ftpl    " jump to the ~/.vim/ftplugin/ directory
 "   :Scd doc        " change to the most recently visited doc directory
-"   :Scd in(#e)     " jump to recent directory ending in 'in'
+"   :Scd in$        " jump to recent directory ending in 'in'
 "   :Scd            " show selection menu of frequently used directories
 "   :Scd -v         " show selection menu with directory ranking
 "   :Slcd           " same as Scd, but use the :lcd Vim command

@@ -79,9 +79,6 @@ scd [options] [pattern1 pattern2 ...]
 
     For `dash` or old Bource shells, replace `source` command above with `.`.
 
-5.  Create `~/bin/` directory for scd-generated command script.
-    (Not needed for Zsh)
-
 
 ## Examples
 
@@ -96,7 +93,7 @@ scd doc
 scd a b c
 
 # Change to a directory path that ends with "ts"
-scd "ts(#e)"
+scd "ts$"
 
 # Show selection menu and ranking of 20 most likely directories
 scd -v
