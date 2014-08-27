@@ -11,22 +11,22 @@ fi
 local DOC='scd -- smart change to a recently used directory
 usage: scd [options] [pattern1 pattern2 ...]
 Go to a directory path that contains all fixed string patterns.  Prefer
-recently visited directories and directories with patterns in their tail
-component.  Display a selection menu in case of multiple matches.
+recent or frequently visited directories as found in the directory index.
+Display a selection menu in case of multiple matches.
 
 Options:
-  -a, --add         add specified directories to the directory index
-  --unindex         remove current or specified directories from the index
-  -r, --recursive   apply options --add or --unindex recursively
+  -a, --add         add specified directories to the directory index.
+  --unindex         remove current or specified directories from the index.
+  -r, --recursive   apply options --add or --unindex recursively.
   --alias=ALIAS     create alias for the current or specified directory and
-                    store it in ~/.scdalias.zsh
+                    store it in ~/.scdalias.zsh.
   --unalias         remove ALIAS definition for the current or specified
-                    directory from ~/.scdalias.zsh
-  -A, --all         include all matching directories.  Disregard matching
-                    alias and filtering by threshold likelihood.
-  --list            show matching directories and exit
-  -v, --verbose     display directory rank in the selection menu
-  -h, --help        display this message and exit
+                    directory from ~/.scdalias.zsh.
+  -A, --all         include all matching directories.  Disregard matching by
+                    directory alias and filtering of less likely paths.
+  --list            show matching directories and exit.
+  -v, --verbose     display directory rank in the selection menu.
+  -h, --help        display this message and exit.
 '
 
 local SCD_HISTFILE=${SCD_HISTFILE:-${HOME}/.scdhistory}

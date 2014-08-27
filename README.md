@@ -25,7 +25,7 @@ scd [options] [pattern1 pattern2 ...]
   add specified directories to the directory index.</dd><dt>
 
 --unindex</dt><dd>
-  remove specified directories from the index.</dd><dt>
+  remove current or specified directories from the index.</dd><dt>
 
 -r, --recursive</dt><dd>
   apply options <em>--add</em> or <em>--unindex</em> recursively.</dd><dt>
@@ -37,6 +37,10 @@ scd [options] [pattern1 pattern2 ...]
 --unalias</dt><dd>
   remove ALIAS definition for the current or specified directory from
   <em>~/.scdalias.zsh</em>.</dd><dt>
+
+-A, --all</dt><dd>
+  include all matching directories.  Disregard matching by directory
+  alias and filtering of less likely paths.</dd><dt>
 
 --list</dt><dd>
   show matching directories and exit.</dd><dt>
