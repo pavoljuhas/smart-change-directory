@@ -5,7 +5,7 @@
 "
 " Requirements:
 "
-"   * Linux, Mac OS X or other Unix-like operating system
+"   * Linux, Mac OS X or other unix-like operating system
 "   * Z shell (usually the "zsh" package in Linux)
 "
 " Installation:

@@ -1,7 +1,7 @@
 # smart-change-directory (scd)
 
 [Z shell](http://www.zsh.org/) function for visiting any directory in
-a Unix shell, [Vim](http://www.vim.org/) or [IPython](http://ipython.org/).
+a unix shell, [Vim](http://www.vim.org/) or [IPython](http://ipython.org/).
 
 `scd` is a Z shell (Zsh) script for changing to any directory with a few
 keystrokes.  scd keeps history of the visited directories, which
