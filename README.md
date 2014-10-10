@@ -126,14 +126,14 @@ scd xray
 ## Examples
 
 ```VimL
-" recursively index ~/.vim/ and its subdirectories
+" add ~/.vim/ and its subdirectories to the scd directory index
 :Scd -ar ~/.vim
 
 " jump to the ~/.vim/ftplugin/ directory
 :Scd vi ftpl
 
-" change to the most recently visited doc directory
-:Scd doc
+" change to a recent directory ending with "im"
+:Scd im$
 
 " show selection menu with directories ranked by likelihood
 :Scd -v
@@ -143,6 +143,9 @@ scd xray
 
 " complete scd-defined directory aliases
 :Scd <Tab>
+
+" display a brief usage information for :Scd
+:Scd --help
 ```
 
 
