@@ -163,7 +163,16 @@ _scd_Y19oug_compress() {
 # Rewrite directory index if it is at least 20% oversized
 if [[ -s $SCD_HISTFILE ]] && \
 (( $(wc -l <$SCD_HISTFILE) > 1.2 * $SCD_HISTSIZE )); then
+    # compress repeated entries
     m=( ${(f)"$(_scd_Y19oug_compress $SCD_HISTFILE)"} )
+    # purge non-existent directories
+    m=( ${(f)"$(
+        for a in $m; do
+            if [[ -d ${a#*;} ]]; then print -r -- $a; fi
+        done
+        )"}
+    )
+    # cut old entries if still oversized
     if [[ $#m -gt $SCD_HISTSIZE ]]; then
         m=( ${m[-$SCD_HISTSIZE,-1]} )
     fi
