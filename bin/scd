@@ -197,13 +197,8 @@ _scd_Y19oug_record() {
 }
 
 if [[ -n $opt_add ]]; then
-    for d; do
-        if [[ ! -d $d ]]; then
-            print -u2 "Directory '$d' does not exist."
-            $EXIT 2
-        fi
-    done
-    _scd_Y19oug_abspath m ${*:-$PWD}
+    m=( ${^argv}(N-/) )
+    _scd_Y19oug_abspath m ${m}
     _scd_Y19oug_record $m
     if [[ -n $opt_recursive ]]; then
         for d in $m; do
