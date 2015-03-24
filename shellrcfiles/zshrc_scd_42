@@ -11,16 +11,14 @@ fi
 
 
 ## The chpwd function is a special built-in function executed after
-## directory change.  Uncomment the following lines to record visited
+## directory change.  Uncomment the following line to record visited
 ## directories in the scd index.  If you already use chpwd, just add
-## there the scd command.
+## the scd command there.
 
 # chpwd()  { scd --add "$PWD" }
 
 
-## Allow scd usage with unquoted wildcard characters such as "*" or "?".
-alias scd='noglob scd'
-
-
 ## Load the directory aliases created by scd if any.
-if [[ -s ~/.scdalias.zsh ]]; then source ~/.scdalias.zsh; fi
+if [[ -s ~/.scdalias.zsh ]]; then
+    source ~/.scdalias.zsh
+fi

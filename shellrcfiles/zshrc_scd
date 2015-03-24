@@ -19,9 +19,7 @@ if [[ ${+functions[scd]} == 1 ]]; then
 fi
 
 
-## Allow scd usage with unquoted wildcard characters such as "*" or "?".
-alias scd='noglob scd'
-
-
 ## Load the directory aliases created by scd if any.
-if [[ -s ~/.scdalias.zsh ]]; then source ~/.scdalias.zsh; fi
+if [[ -s ~/.scdalias.zsh ]]; then
+    source ~/.scdalias.zsh
+fi
