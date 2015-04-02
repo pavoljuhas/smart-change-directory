@@ -56,6 +56,7 @@ setopt extendedhistory extendedglob noautonamedirs brace_ccl
 # process command line options
 zmodload -i zsh/zutil
 zmodload -i zsh/datetime
+zmodload -i zsh/parameter
 zparseopts -D -- a=opt_add -add=opt_add -unindex=opt_unindex \
     r=opt_recursive -recursive=opt_recursive \
     -alias:=opt_alias -unalias=opt_unalias \
@@ -108,16 +109,15 @@ fi
 
 # undefine directory alias
 if [[ -n $opt_unalias ]]; then
-    if [[ -n $1 && ! -d $1 ]]; then
-        print -u2 "'$1' is not a directory."
+    d=${1:-$PWD}
+    if [[ ${+nameddirs[$d]} == 0 && -d $d ]]; then
+        _scd_Y19oug_abspath d $d
+    fi
+    a=${(k)nameddirs[$d]:-${(k)nameddirs[(r)$d]}}
+    if [[ -z $a ]]; then
+        print -u2 "'$1' is neither a directory alias nor an aliased path."
         $EXIT 1
     fi
-    _scd_Y19oug_abspath a ${1:-$PWD}
-    a=$(print -rD ${a})
-    if [[ $a != [~][^/]## ]]; then
-        $EXIT
-    fi
-    a=${a#[~]}
     # unalias in the current shell, update alias file if successful
     if unhash -d -- $a 2>/dev/null && [[ -r $SCD_ALIAS ]]; then
         (
@@ -125,7 +125,7 @@ if [[ -n $opt_unalias ]]; then
             hash -dr
             source $SCD_ALIAS
             unhash -d -- $a 2>/dev/null &&
-            hash -dL >| $SCD_ALIAS
+                hash -dL >| $SCD_ALIAS
         )
     fi
     $EXIT $?
