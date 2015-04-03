@@ -140,7 +140,7 @@ augroup! ScdAutoCommands
 " If autoindex is enabled, add autocommand to check for directory change.
 if s:scd_autoindex
     augroup ScdAutoCommands
-        autocmd CursorHold * call s:ScdAddChangedDir()
+        autocmd CursorHold,CursorHoldI * call s:ScdAddChangedDir()
     augroup END
 endif
 
