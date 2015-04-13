@@ -15,7 +15,7 @@ recent or frequently visited directories as found in the directory index.
 Display a selection menu in case of multiple matches.
 
 Options:
-  -a, --add         add specified directories to the directory index.
+  -a, --add         add current or specified directories to the index.
   --unindex         remove current or specified directories from the index.
   -r, --recursive   apply options --add or --unindex recursively.
   --alias=ALIAS     create alias for the current or specified directory and
@@ -197,7 +197,7 @@ _scd_Y19oug_record() {
 }
 
 if [[ -n $opt_add ]]; then
-    m=( ${^argv}(N-/) )
+    m=( ${^${argv:-$PWD}}(N-/) )
     _scd_Y19oug_abspath m ${m}
     _scd_Y19oug_record $m
     if [[ -n $opt_recursive ]]; then
@@ -215,6 +215,7 @@ if [[ -n $opt_unindex ]]; then
     if [[ ! -s $SCD_HISTFILE ]]; then
         $EXIT
     fi
+    argv=( ${argv:-$PWD} )
     # expand existing directories in the argument list
     for i in {1..$#}; do
         if [[ -d ${argv[i]} ]]; then
@@ -239,7 +240,7 @@ if [[ -n $opt_unindex ]]; then
             }
         }
         { print $0 }
-        ' $SCD_HISTFILE ${*:-$PWD} )" || $EXIT $?
+        ' $SCD_HISTFILE $* )" || $EXIT $?
     : >| ${SCD_HISTFILE}
     [[ ${#m} == 0 ]] || print -r -- $m >> ${SCD_HISTFILE}
     $EXIT

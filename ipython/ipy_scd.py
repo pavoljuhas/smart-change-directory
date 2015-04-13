@@ -79,7 +79,7 @@ def do_scd(self, arg):
     Display a selection menu in case of multiple matches.
 
     Options:
-    -a, --add         add specified directories to the directory index.
+    -a, --add         add current or specified directories to the index.
     --unindex         remove current or specified directories from the index.
     -r, --recursive   apply options --add or --unindex recursively.
     --alias=ALIAS     create alias for the current or specified directory and
