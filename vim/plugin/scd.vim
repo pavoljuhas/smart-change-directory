@@ -1,5 +1,5 @@
 " scd.vim -- Vim plugin for Smart Change of Directory
-" Date: 2015-04-17
+" Date: 2015-04-18
 " Maintainer: Pavol Juhas <pavol.juhas@gmail.com>
 " URL: https://github.com/pavoljuhas/smart-change-directory/
 "
@@ -75,15 +75,15 @@ let s:scd_autoindex = s:scd_autoindex && (1 == executable(s:scd_command))
 " Define user Scd commands ---------------------------------------------------
 
 command! -complete=custom,s:ScdComplete -nargs=* Scd
-            \ call <SID>ScdFun("cd", <f-args>)
+            \ call <SID>ScdFun("cd", [<f-args>])
 command! -complete=custom,s:ScdComplete -nargs=* Slcd
-            \ call <SID>ScdFun("lcd", <f-args>)
+            \ call <SID>ScdFun("lcd", [<f-args>])
 
 " Implementation -------------------------------------------------------------
 
 " main interface to the z-shell script
-function! s:ScdFun(cdcmd, ...)
-    let qargs = map(copy(a:000),
+function! s:ScdFun(cdcmd, scdargs)
+    let qargs = map(copy(a:scdargs),
                 \ '(v:val[0] == "~") ? v:val : shellescape(v:val)')
     let cmd = join([s:scd_command, '--list'] + qargs, ' ')
     let output = system(cmd)
