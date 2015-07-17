@@ -1,5 +1,5 @@
 " scd.vim -- Vim plugin for Smart Change of Directory
-" Date: 2015-04-18
+" Date: 2015-07-17
 " Maintainer: Pavol Juhas <pavol.juhas@gmail.com>
 " URL: https://github.com/pavoljuhas/smart-change-directory/
 "
@@ -163,7 +163,7 @@ function! s:ScdComplete(A, L, P)
     let searchdirs = (a:A !~ '^[~][^/]*$')
     let Afull = aliases.expand(a:A)
     let Apattern = substitute(Afull, '[*]*$', '*', '')
-    let dirnames = searchdirs ? glob(Apattern, 0, 1) : []
+    let dirnames = searchdirs ? split(glob(Apattern), '\n') : []
     call filter(dirnames, 'isdirectory(v:val) && v:val !~ "/[.][.]\\?$"')
     let dir = {'path' : {}, 'A' : a:A, 'Afull' : Afull, 'nf' : strlen(Afull)}
     function dir.unique(d) dict
