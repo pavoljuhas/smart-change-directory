@@ -21,7 +21,7 @@ IPYTHON/profile_default/ipython_config.py file.
 import re
 import IPython
 
-ipyversion = map(int, re.split(r'(\d+)', IPython.__version__)[1::2])
+ipyversion = list(map(int, re.split(r'(\d+)', IPython.__version__)[1::2]))
 isipython010 = ipyversion < [0, 11]
 isipython012 = (ipyversion < [0, 13]) and not isipython010
 isipython013 = not (ipyversion < [0, 13])
