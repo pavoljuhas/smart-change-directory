@@ -1,5 +1,5 @@
 " scd.vim -- Vim plugin for Smart Change of Directory
-" Date: 2015-07-17
+" Date: 2016-06-16
 " Maintainer: Pavol Juhas <pavol.juhas@gmail.com>
 " URL: https://github.com/pavoljuhas/smart-change-directory/
 "
@@ -176,7 +176,6 @@ function! s:ScdComplete(A, L, P)
     endfunction
     call filter(dirnames, 'dir.unique(v:val)')
     call map(dirnames, 'dir.unexpand(v:val)')
-    let suggestions = (empty(a:A) ? [] : anames1) + anames2 + dirnames
     let suggestions = empty(a:A) ? (anames2 + dirnames) :
                 \ (a:A =~ '[?*]$') ? dirnames : (anames1 + anames2 + dirnames)
     return join(suggestions, "\n")
