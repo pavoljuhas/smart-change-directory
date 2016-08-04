@@ -32,17 +32,14 @@ import subprocess
 import tempfile
 import shlex
 
+from IPython.core.magic import OSMagics, Magics, magics_class, line_magic
 
-from IPython.core.magics import OSMagics
 
 class _cdcommands:
     """Namespace class for saving original cd-related commands."""
     cd = None
     pushd = None
     popd = None
-    cd_doc = OSMagics.cd.__doc__
-    pushd_doc = OSMagics.pushd.__doc__
-    popd_doc = OSMagics.popd.__doc__
     pass
 
 
@@ -70,59 +67,70 @@ def whereisexecutable(program):
 scd_executable = (whereisexecutable('scd') + [''])[0]
 
 
-def do_scd(self, arg):
-    '''scd -- smart change to a recently used directory
-    usage: scd [options] [pattern1 pattern2 ...]
-    Go to a directory path that contains all fixed string patterns.  Prefer
-    recent or frequently visited directories as found in the directory index.
-    Display a selection menu in case of multiple matches.
+@magics_class
+class SCDMagics(Magics):
 
-    Options:
-    -a, --add         add current or specified directories to the index.
-    --unindex         remove current or specified directories from the index.
-    -r, --recursive   apply options --add or --unindex recursively.
-    --alias=ALIAS     create alias for the current or specified directory and
-                      store it in ~/.scdalias.zsh.
-    --unalias         remove ALIAS definition for the current or specified
-                      directory from ~/.scdalias.zsh.
-    -A, --all         include all matching directories.  Disregard matching by
-                      directory alias and filtering of less likely paths.
-    --list            show matching directories and exit.
-    -v, --verbose     display directory rank in the selection menu.
-    -h, --help        display this message and exit.
-    '''
-    scdfile = tempfile.NamedTemporaryFile('r')
-    env = dict(os.environ)
-    env['SCD_SCRIPT'] = scdfile.name
-    args = [scd_executable] + shlex.split(str(arg))
-    retcode = subprocess.call(args, env=env)
-    cmd = scdfile.read()
-    if retcode == 0 and cmd.startswith('cd '):
-        _cdcommands.cd(cmd[3:])
-        cwd = shlex.split(cmd[3:])[0]
-        _scd_record_cwd(cwd)
-    return
+    @line_magic
+    def scd(self, arg):
+        '''scd -- smart change to a recently used directory
+        usage: scd [options] [pattern1 pattern2 ...]
+        Go to a directory path that contains all fixed string patterns.  Prefer
+        recent or frequently visited directories as found in the directory index.
+        Display a selection menu in case of multiple matches.
 
-
-def do_cd(self, arg):
-    rv = _cdcommands.cd(arg)
-    _scd_record_cwd()
-    return rv
-do_cd.__doc__ = _cdcommands.cd_doc
-
-
-def do_pushd(self, arg):
-    rv = _cdcommands.pushd(arg)
-    _scd_record_cwd()
-    return rv
-do_pushd.__doc__ = _cdcommands.pushd_doc
+        Options:
+        -a, --add         add current or specified directories to the index.
+        --unindex         remove current or specified directories from the index.
+        -r, --recursive   apply options --add or --unindex recursively.
+        --alias=ALIAS     create alias for the current or specified directory and
+                        store it in ~/.scdalias.zsh.
+        --unalias         remove ALIAS definition for the current or specified
+                        directory from ~/.scdalias.zsh.
+        -A, --all         include all matching directories.  Disregard matching by
+                        directory alias and filtering of less likely paths.
+        --list            show matching directories and exit.
+        -v, --verbose     display directory rank in the selection menu.
+        -h, --help        display this message and exit.
+        '''
+        import os
+        import subprocess
+        import tempfile
+        import shlex
+        scdfile = tempfile.NamedTemporaryFile('r')
+        env = dict(os.environ)
+        env['SCD_SCRIPT'] = scdfile.name
+        args = [scd_executable] + shlex.split(str(arg))
+        retcode = subprocess.call(args, env=env)
+        cmd = scdfile.read()
+        if retcode == 0 and cmd.startswith('cd '):
+            _cdcommands.cd(cmd[3:])
+            cwd = shlex.split(cmd[3:])[0]
+            _scd_record_cwd(cwd)
+        return
 
 
-def do_popd(self, arg):
-    rv = _cdcommands.popd(arg)
-    _scd_record_cwd()
-    return rv
-do_popd.__doc__ = _cdcommands.popd_doc
+    @line_magic
+    def cd(self, arg):
+        rv = _cdcommands.cd(arg)
+        _scd_record_cwd()
+        return rv
+    cd.__doc__ = OSMagics.cd.__doc__
+
+
+    @line_magic
+    def pushd(self, arg):
+        rv = _cdcommands.pushd(arg)
+        _scd_record_cwd()
+        return rv
+    pushd.__doc__ = OSMagics.pushd.__doc__
+
+
+    @line_magic
+    def popd(self, arg):
+        rv = _cdcommands.popd(arg)
+        _scd_record_cwd()
+        return rv
+    popd.__doc__ = OSMagics.popd.__doc__
 
 
 # Function for loading the scd magic with the 0.11 or later API
@@ -138,20 +146,20 @@ def load_ipython_extension(ipython):
         _cdcommands.cd = ipython.find_magic('cd')
         _cdcommands.pushd = ipython.find_magic('pushd')
         _cdcommands.popd = ipython.find_magic('popd')
-    ipython.define_magic('scd', do_scd)
-    ipython.define_magic('cd', do_cd)
-    ipython.define_magic('pushd', do_pushd)
-    ipython.define_magic('popd', do_popd)
+    ipython.register_magics(SCDMagics)
     global _scd_active
     _scd_active = True
     return
 
 
 def unload_ipython_extension(ipython):
-    if hasattr(ipython, 'magic_scd'):
-        delattr(ipython, 'magic_scd')
     global _scd_active
     _scd_active = False
+    ipython.magics_manager.magics['line'].pop('scd', None)
+    if _cdcommands.cd is not None:
+        ipython.register_magic_function(_cdcommands.cd)
+        ipython.register_magic_function(_cdcommands.pushd)
+        ipython.register_magic_function(_cdcommands.popd)
     return
 
 
