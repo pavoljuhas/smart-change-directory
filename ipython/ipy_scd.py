@@ -32,7 +32,7 @@ import subprocess
 import tempfile
 import shlex
 
-from IPython.core.magic import OSMagics, Magics, magics_class, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic
 
 
 class _cdcommands:
@@ -108,6 +108,7 @@ class SCDMagics(Magics):
             _scd_record_cwd(cwd)
         return
 
+    from IPython.core.magics import OSMagics
 
     @line_magic
     def cd(self, arg):
@@ -131,6 +132,8 @@ class SCDMagics(Magics):
         _scd_record_cwd()
         return rv
     popd.__doc__ = OSMagics.popd.__doc__
+
+    del OSMagics
 
 
 # Function for loading the scd magic with the 0.11 or later API
