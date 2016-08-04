@@ -163,10 +163,6 @@ scd xray
    c.TerminalIPythonApp.extensions = ['ipy_scd']
    ```
 
-   In IPython 0.10, which does not support extensions, import `ipy_scd` from
-   the `~/.ipython/ipy_user_conf.py` startup file.  This should activate the
-   `%scd` magic just as above.
-
 3. If `scd` is not in the PATH, its location can be defined with
    ```Python
    import ipy_scd
