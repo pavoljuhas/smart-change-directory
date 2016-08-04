@@ -16,7 +16,7 @@ IPYTHON/profile_default/ipython_config.py file.
 
 import IPython
 
-# Require IPython version 0.13 or later
+# Require IPython version 0.13 or later --------------------------------------
 
 ipyversion = []
 for w in IPython.__version__.split('.'):
@@ -25,11 +25,18 @@ for w in IPython.__version__.split('.'):
 
 assert ipyversion >= [0, 13], "ipy_scd requires IPython 0.13 or later."
 
-# We have a recent IPython here
+# We have a recent IPython here ----------------------------------------------
+
+import os
+import subprocess
+import tempfile
+import shlex
+
 
 from IPython.core.magics import OSMagics
 
 class _cdcommands:
+    """Namespace class for saving original cd-related commands."""
     cd = None
     pushd = None
     popd = None
@@ -47,7 +54,6 @@ def whereisexecutable(program):
     Return a list of absolute paths to the program.  When program
     contains any path components, just check if that file is executable.
     '''
-    import os
     isexecutable = lambda f: os.access(f, os.X_OK) and os.path.isfile(f)
     ppath, pname = os.path.split(program)
     rv = []
@@ -85,10 +91,6 @@ def do_scd(self, arg):
     -v, --verbose     display directory rank in the selection menu.
     -h, --help        display this message and exit.
     '''
-    import os
-    import subprocess
-    import tempfile
-    import shlex
     scdfile = tempfile.NamedTemporaryFile('r')
     env = dict(os.environ)
     env['SCD_SCRIPT'] = scdfile.name
@@ -155,8 +157,6 @@ def unload_ipython_extension(ipython):
 
 def _scd_record_cwd(cwd=None):
     if not _scd_active:  return
-    import os
-    import subprocess
     global _scd_last_directory
     if cwd is None:
         cwd = os.getcwd()
