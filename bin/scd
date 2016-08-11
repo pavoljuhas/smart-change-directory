@@ -46,8 +46,8 @@ local last_directory
 
 setopt extendedhistory extendedglob noautonamedirs brace_ccl
 
-# If SCD_SCRIPT is defined make sure the file exists and is empty.
-# This removes any previous old commands.
+# If SCD_SCRIPT is defined make sure that that file exists and is empty.
+# This removes any old previous commands from the SCD_SCRIPT file.
 [[ -n "$SCD_SCRIPT" ]] && [[ -s $SCD_SCRIPT || ! -f $SCD_SCRIPT ]] && (
     umask 077
     : >| $SCD_SCRIPT
@@ -131,10 +131,12 @@ if [[ -n $opt_unalias ]]; then
     $EXIT $?
 fi
 
-# The "compress" function collapses repeated directories to
-# one entry with a time stamp that gives equivalent-probability.
+# The "compress" function collapses repeated directories into
+# a single entry with a time-stamp yielding an equivalent probability.
 _scd_Y19oug_compress() {
-    awk -v epochseconds=$EPOCHSECONDS -v meanlife=$SCD_MEANLIFE '
+    awk -v epochseconds=$EPOCHSECONDS \
+        -v meanlife=$SCD_MEANLIFE \
+        '
         BEGIN { FS = "[:;]"; }
         length($0) < 4096 && $2 > 0 {
             tau = 1.0 * ($2 - epochseconds) / meanlife;
@@ -157,10 +159,10 @@ _scd_Y19oug_compress() {
                 }
             }
         }
-    ' $*
+        ' $*
 }
 
-# Rewrite directory index if it is at least 20% oversized
+# Rewrite directory index if it is at least 20% oversized.
 if [[ -s $SCD_HISTFILE ]] && \
 (( $(wc -l <$SCD_HISTFILE) > 1.2 * $SCD_HISTSIZE )); then
     # compress repeated entries
@@ -257,8 +259,8 @@ _scd_Y19oug_action() {
     fi
 }
 
-# Match and rank patterns to the index file
-# set global arrays dmatching and drank
+# Select and order indexed directories by matching command-line patterns.
+# Set global arrays dmatching and drank.
 _scd_Y19oug_match() {
     ## single argument that is an existing directory or directory alias
     if [[ -z $opt_all && $# == 1 ]] && \
@@ -271,15 +273,17 @@ _scd_Y19oug_match() {
 
     # ignore case unless there is an argument with an uppercase letter
     [[ "$*" == *[[:upper:]]* ]] || ICASE='(#i)'
-    # support "$" as an anchor for the directory name ending
+    # support "$" as an anchor at the end of directory name.
     argv=( ${argv/(#m)?[$](#e)/${MATCH[1]}(#e)} )
 
-    # calculate rank of all directories in the SCD_HISTFILE and keep it as drank
-    # include a dummy entry for splitting of an empty string is buggy
+    # calculate rank of all directories in SCD_HISTFILE and store it in drank.
+    # include a dummy entry to avoid issues with splitting an empty string.
     [[ -s $SCD_HISTFILE ]] && drank=( ${(f)"$(
         print -l /dev/null -10
         <$SCD_HISTFILE \
-        awk -v epochseconds=$EPOCHSECONDS -v meanlife=$SCD_MEANLIFE '
+        awk -v epochseconds=$EPOCHSECONDS \
+            -v meanlife=$SCD_MEANLIFE \
+            '
             BEGIN { FS = "[:;]"; }
             length($0) < 4096 && $2 > 0 {
                 tau = 1.0 * ($2 - epochseconds) / meanlife;
@@ -288,7 +292,8 @@ _scd_Y19oug_match() {
                 sub(/^[^;]*;/, "");
                 if (NF)  ptot[$0] += prob;
             }
-            END { for (di in ptot)  { print di; print ptot[di]; } }'
+            END { for (di in ptot)  { print di; print ptot[di]; } }
+            '
         )"}
     )
     unset "drank[/dev/null]"
@@ -298,7 +303,7 @@ _scd_Y19oug_match() {
         p=${ICASE}"*(${a})*"
         drank=( ${(kv)drank[(I)${~p}]} )
     done
-    # require at least one argument matches the directory name
+    # require that at least one argument matches in directory tail name.
     p=${ICASE}"*(${(j:|:)argv})[^/]#"
     drank=( ${(kv)drank[(I)${~p}]} )
 
@@ -339,7 +344,7 @@ _scd_Y19oug_match() {
 
 _scd_Y19oug_match $*
 
-## process whatever directories that remained
+## process matching directories.
 if [[ ${#dmatching} == 0 ]]; then
     print -u2 "No matching directory."
     $EXIT 1
@@ -363,13 +368,13 @@ if [[ -n $opt_list ]]; then
     $EXIT
 fi
 
-## process single directory match
+## handle a single matching directory here.
 if [[ ${#dmatching} == 1 ]]; then
     _scd_Y19oug_action $dmatching
     $EXIT $?
 fi
 
-## here we have multiple matches - display selection menu
+## Here we have multiple matches.  Let's use the selection menu.
 a=( {a-z} {A-Z} )
 a=( ${a[1,${#dmatching}]} )
 p=( )
