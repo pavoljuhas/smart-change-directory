@@ -37,6 +37,9 @@ local SCD_THRESHOLD=${SCD_THRESHOLD:-0.005}
 local SCD_SCRIPT=${RUNNING_AS_COMMAND:+$SCD_SCRIPT}
 local SCD_ALIAS=~/.scdalias.zsh
 
+# Minimum logarithm of probability.  Avoids out of range warning in exp().
+local -r MINLOGPROB=-15
+
 local ICASE a d m p i maxrank threshold
 local opt_help opt_add opt_unindex opt_recursive opt_verbose
 local opt_alias opt_unalias opt_all opt_list
@@ -136,11 +139,12 @@ fi
 _scd_Y19oug_compress() {
     awk -v epochseconds=$EPOCHSECONDS \
         -v meanlife=$SCD_MEANLIFE \
+        -v minlogprob=$MINLOGPROB \
         '
         BEGIN { FS = "[:;]"; }
         length($0) < 4096 && $2 > 0 {
             tau = 1.0 * ($2 - epochseconds) / meanlife;
-            if (tau < -6.9078)  tau = -6.9078;
+            if (tau < minlogprob)  tau = minlogprob;
             prob = exp(tau);
             sub(/^[^;]*;/, "");
             if (NF)  {
@@ -283,11 +287,12 @@ _scd_Y19oug_match() {
         <$SCD_HISTFILE \
         awk -v epochseconds=$EPOCHSECONDS \
             -v meanlife=$SCD_MEANLIFE \
+            -v minlogprob=$MINLOGPROB \
             '
             BEGIN { FS = "[:;]"; }
             length($0) < 4096 && $2 > 0 {
                 tau = 1.0 * ($2 - epochseconds) / meanlife;
-                if (tau < -6.9078)  tau = -6.9078;
+                if (tau < minlogprob)  tau = minlogprob;
                 prob = exp(tau);
                 sub(/^[^;]*;/, "");
                 if (NF)  ptot[$0] += prob;
