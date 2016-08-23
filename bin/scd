@@ -60,12 +60,15 @@ setopt extendedhistory extendedglob noautonamedirs brace_ccl
 zmodload -i zsh/zutil
 zmodload -i zsh/datetime
 zmodload -i zsh/parameter
-zparseopts -D -- a=opt_add -add=opt_add -unindex=opt_unindex \
+zparseopts -D -E -- a=opt_add -add=opt_add -unindex=opt_unindex \
     r=opt_recursive -recursive=opt_recursive \
     -alias:=opt_alias -unalias=opt_unalias \
     A=opt_all -all=opt_all -list=opt_list \
     v=opt_verbose -verbose=opt_verbose h=opt_help -help=opt_help \
     || $EXIT $?
+
+# remove the first instance of "--" from positional arguments
+argv[(i)--]=( )
 
 if [[ -n $opt_help ]]; then
     print $DOC
