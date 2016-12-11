@@ -123,12 +123,34 @@ endfunction
 " Remember startup directory to detect directory change.
 let s:last_directory = getcwd()
 
-function! s:ScdAddChangedDir()
-    if s:last_directory == getcwd()
+function! s:ScdAddChangedDir() abort
+    let cwd = getcwd()
+    if s:last_directory == cwd
         return
     endif
-    let s:last_directory = getcwd()
-    call system(s:scd_command . ' -a . &')
+    let s:last_directory = cwd
+    " Deprecated code for older Vim versions where writefile cannot append.
+    if v:version < 800
+        call system(s:scd_command . ' -a . &')
+        return
+    endif
+    " Record the current directory without calling system and thus
+    " overwriting the v:shell_error value.
+    let scd_histfile = exists('$SCD_HISTFILE') ?
+                \ $SCD_HISTFILE : expand('~/.scdhistory')
+    " Ensure history file exists.  If not create it with private permissions.
+    if !filereadable(scd_histfile)
+        call writefile([], scd_histfile)
+        call setfperm(scd_histfile, 'rw-------')
+    endif
+    " Obtain the last line or empty string for an empty file.
+    let tail = ([''] + readfile(scd_histfile, '', -1))[-1]
+    let tail_directory = substitute(tail, '^[^;]*;', '', '')
+    if tail_directory == cwd
+        return
+    endif
+    let line = ': ' . localtime() . ':0;' . cwd
+    call writefile([line], scd_histfile, 'a')
 endfunction
 
 " First remove all scd-related autocommands.
