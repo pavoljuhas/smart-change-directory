@@ -22,8 +22,9 @@ Options:
                     store it in ~/.scdalias.zsh.
   --unalias         remove ALIAS definition for the current or specified
                     directory from ~/.scdalias.zsh.
-  -A, --all         include all matching directories.  Disregard matching by
-                    directory alias and filtering of less likely paths.
+  -A, --all         display all directories even those excluded by patterns
+                    in ~/.scdignore.  Disregard unique match for a directory
+                    alias and filtering of less likely paths.
   --list            show matching directories and exit.
   -v, --verbose     display directory rank in the selection menu.
   -h, --help        display this message and exit.
@@ -36,6 +37,7 @@ local SCD_MEANLIFE=${SCD_MEANLIFE:-86400}
 local SCD_THRESHOLD=${SCD_THRESHOLD:-0.005}
 local SCD_SCRIPT=${RUNNING_AS_COMMAND:+$SCD_SCRIPT}
 local SCD_ALIAS=~/.scdalias.zsh
+local SCD_IGNORE=~/.scdignore
 
 # Minimum logarithm of probability.  Avoids out of range warning in exp().
 local -r MINLOGPROB=-15
@@ -43,7 +45,7 @@ local -r MINLOGPROB=-15
 local ICASE a d m p i maxrank threshold
 local opt_help opt_add opt_unindex opt_recursive opt_verbose
 local opt_alias opt_unalias opt_all opt_list
-local -A drank dalias
+local -A drank dalias scdignore
 local dmatching
 local last_directory
 
@@ -77,6 +79,16 @@ fi
 
 # load directory aliases if they exist
 [[ -r $SCD_ALIAS ]] && source $SCD_ALIAS
+
+# load scd-ignore patterns if available
+if [[ -s $SCD_IGNORE ]]; then
+    <$SCD_IGNORE \
+    while read p; do
+        [[ $p != [\#]* ]] || continue
+        [[ -n $p ]] || continue
+        scdignore[$p]=1
+    done
+fi
 
 # Private internal functions are prefixed with _scd_Y19oug_.
 # Clean them up when the scd function returns.
@@ -174,10 +186,13 @@ if [[ -s $SCD_HISTFILE ]] && \
 (( $(wc -l <$SCD_HISTFILE) > 1.2 * $SCD_HISTSIZE )); then
     # compress repeated entries
     m=( ${(f)"$(_scd_Y19oug_compress $SCD_HISTFILE)"} )
-    # purge non-existent directories
+    # purge non-existent and ignored directories
     m=( ${(f)"$(
         for a in $m; do
-            if [[ -d ${a#*;} ]]; then print -r -- $a; fi
+            d=${a#*;}
+            [[ -z ${scdignore[(k)$d]} ]] || continue
+            [[ -d $d ]] || continue
+            print -r -- $a
         done
         )"}
     )
@@ -314,6 +329,14 @@ _scd_Y19oug_match() {
     # require that at least one argument matches in directory tail name.
     p=${ICASE}"*(${(j:|:)argv})[^/]#"
     drank=( ${(kv)drank[(I)${~p}]} )
+
+    # discard ignored directories
+    if [[ -z ${opt_all} ]]; then
+        for p in ${(k)scdignore}; do
+            p="*~$p"
+            drank=( ${(kv)drank[(I)${~p}]} )
+        done
+    fi
 
     # build a list of matching directories reverse-sorted by their probabilities
     dmatching=( ${(f)"$(

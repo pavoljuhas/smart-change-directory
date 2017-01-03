@@ -83,11 +83,12 @@ class SCDMagics(Magics):
         --unindex         remove current or specified directories from the index.
         -r, --recursive   apply options --add or --unindex recursively.
         --alias=ALIAS     create alias for the current or specified directory and
-                        store it in ~/.scdalias.zsh.
+                          store it in ~/.scdalias.zsh.
         --unalias         remove ALIAS definition for the current or specified
-                        directory from ~/.scdalias.zsh.
-        -A, --all         include all matching directories.  Disregard matching by
-                        directory alias and filtering of less likely paths.
+                          directory from ~/.scdalias.zsh.
+        -A, --all         display all directories even those excluded by patterns
+                          in ~/.scdignore.  Disregard unique match for a directory
+                          alias and filtering of less likely paths.
         --list            show matching directories and exit.
         -v, --verbose     display directory rank in the selection menu.
         -h, --help        display this message and exit.

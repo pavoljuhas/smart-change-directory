@@ -39,8 +39,9 @@ scd [options] [pattern1 pattern2 ...]
   <em>~/.scdalias.zsh</em>.</dd><dt>
 
 -A, --all</dt><dd>
-  include all matching directories.  Disregard matching by directory
-  alias and filtering of less likely paths.</dd><dt>
+  display all directories even those excluded by patterns in
+  <em>~/.scdignore</em>.  Disregard the unique matching for a
+  directory alias and filtering of less likely paths.</dd><dt>
 
 --list</dt><dd>
   show matching directories and exit.</dd><dt>
@@ -186,7 +187,14 @@ scd xray
     time-stamped index of visited directories.</dd><dt>
 
 ~/.scdalias.zsh</dt><dd>
-    scd-generated definitions of directory aliases.</dd>
+    scd-generated definitions of directory aliases.</dd><dt>
+
+~/.scdignore</dt><dd>
+    [glob patterns](http://zsh.sourceforge.net/Doc/Release/Expansion.html#Glob-Operators)
+    for paths to be ignored in the scd search, for example `/mnt/backup/*`.
+    The patterns are specified one per line and are applied assuming the
+    extendedglob zsh option.  Lines starting with "#" are skipped as comments.
+    The .scdignore file does not apply for the `--all` option.</dd>
 </dl>
 
 # ENVIRONMENT
