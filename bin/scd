@@ -42,7 +42,7 @@ local SCD_IGNORE=~/.scdignore
 # Minimum logarithm of probability.  Avoids out of range warning in exp().
 local -r MINLOGPROB=-15
 
-local ICASE a d m p i maxrank threshold
+local a d m p i maxrank threshold
 local opt_help opt_add opt_unindex opt_recursive opt_verbose
 local opt_alias opt_unalias opt_all opt_list
 local -A drank dalias scdignore
@@ -293,8 +293,6 @@ _scd_Y19oug_match() {
         return
     fi
 
-    # ignore case unless there is an argument with an uppercase letter
-    [[ "$*" == *[[:upper:]]* ]] || ICASE='(#i)'
     # support "$" as an anchor at the end of directory name.
     argv=( ${argv/(#m)?[$](#e)/${MATCH[1]}(#e)} )
 
@@ -323,11 +321,11 @@ _scd_Y19oug_match() {
 
     # filter drank to the entries that match all arguments
     for a; do
-        p=${ICASE}"*(${a})*"
+        p="(#l)*(${a})*"
         drank=( ${(kv)drank[(I)${~p}]} )
     done
     # require that at least one argument matches in directory tail name.
-    p=${ICASE}"*(${(j:|:)argv})[^/]#"
+    p="(#l)*(${(j:|:)argv})[^/]#"
     drank=( ${(kv)drank[(I)${~p}]} )
 
     # discard ignored directories
