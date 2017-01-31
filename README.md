@@ -92,7 +92,7 @@ scd [options] [pattern1 pattern2 ...]
 
     * *tcsh*
 
-      ```csh
+      ```sh
       # ~/.cshrc
       source ~/Software/smart-change-directory/shellrcfiles/tcshrc_scd
       ```
