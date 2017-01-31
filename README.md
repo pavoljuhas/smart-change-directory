@@ -214,11 +214,12 @@ scd xray
     scd-generated definitions of directory aliases.</dd><dt>
 
 ~/.scdignore</dt><dd>
-    [glob patterns](http://zsh.sourceforge.net/Doc/Release/Expansion.html#Glob-Operators)
-    for paths to be ignored in the scd search, for example `/mnt/backup/*`.
-    The patterns are specified one per line and are applied assuming the
-    extendedglob zsh option.  Lines starting with "#" are skipped as comments.
-    The .scdignore file does not apply for the `--all` option.</dd>
+    <a href="http://zsh.sourceforge.net/Doc/Release/Expansion.html#Glob-Operators">
+    glob patterns</a> for paths to be ignored in the scd search, for example,
+    <code>/mnt/backup/*</code>.  The patterns are specified one per line
+    and are matched assuming the <em>extendedglob</em> zsh option.  Lines
+    starting with "#" are skipped as comments.  The .scdignore patterns
+    are not applied in the <em>--all</em> mode.</dd>
 </dl>
 
 # ENVIRONMENT
