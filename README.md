@@ -61,24 +61,48 @@ scd [options] [pattern1 pattern2 ...]
 1.  Make sure that Z shell is installed.  On Linux it is usually the `zsh`
     package.
 
-2.  Copy or symlink the [bin/scd](bin/scd) script to some
-    directory in the PATH.  Make sure `scd` has executable permissions set or
-    add them with `chmod +x scd`.
+2.  Copy or symlink the [bin/scd](bin/scd) script to some directory
+    in the PATH.
 
 3.  Find out what shell is active for your account by running `ps -p $$`.
 
-4.  Edit the startup file for your shell, e.g., `.bashrc` for `bash`,
-    and have it source the corresponding scd setup file from
-    [shellrcfiles](shellrcfiles).
-    ```sh
-    source ~/Downloads/smart-change-directory/shellrcfiles/bashrc_scd
-    ```
+4.  Edit the startup file for your shell and have it source the
+    corresponding scd setup file from [shellrcfiles](shellrcfiles)
+    as follows:
 
-    For recent versions of Zsh use `zshrc_scd`.  Use `zshrc_scd_42` for Zsh
-    version 4.2 or older.  Note that scd aliases are named directories in Zsh
-    and thus can be expanded as `~NAME` in the shell.
+    * *zsh*
 
-    For `dash` or old Bource shells, replace `source` command above with `.`.
+      ```zsh
+      # ~/.zshrc
+      source ~/Software/smart-change-directory/shellrcfiles/zshrc_scd
+      ```
+
+      Note that scd aliases are named directories in Zsh and can
+      be thus expanded as `~NAME` in the shell.  If you use the
+      [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh)
+      framework you may just activate the `scd` plugin instead.
+      If you have zsh 4.2 or older source `zshrc_scd_42`.
+
+    * *bash*
+
+      ```bash
+      # ~/.bashrc
+      source ~/Software/smart-change-directory/shellrcfiles/bashrc_scd
+      ```
+
+    * *tcsh*
+
+      ```csh
+      # ~/.cshrc
+      source ~/Software/smart-change-directory/shellrcfiles/tcshrc_scd
+      ```
+
+    * *dash*
+
+      ```sh
+      # add to ~/.profile or to the ${ENV} file
+      . ~/Software/smart-change-directory/shellrcfiles/dashrc_scd
+      ```
 
 
 ## Examples

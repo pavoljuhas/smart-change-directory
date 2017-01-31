@@ -13,8 +13,7 @@
 "   (A) Manual
 "   Drop this file to the Vim plugin directory or source it from .vimrc.
 "   Copy or symlink the bin/scd script to some directory in the PATH or
-"   set the g:scd_command variable to its location.  Make sure scd script
-"   has executable permissions set or add them with "chmod +x scd".
+"   set the g:scd_command variable to its location.
 "
 "   (B) Installation from Git bundle
 "   Navigate to the vim/plugin directory in the bundle and create symbolic
