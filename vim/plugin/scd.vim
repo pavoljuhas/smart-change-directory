@@ -1,5 +1,5 @@
 " scd.vim -- Vim plugin for Smart Change of Directory
-" Date: 2016-06-16
+" Date: 2017-01-31
 " Maintainer: Pavol Juhas <pavol.juhas@gmail.com>
 " URL: https://github.com/pavoljuhas/smart-change-directory/
 "
