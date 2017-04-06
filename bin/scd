@@ -315,6 +315,12 @@ _scd_Y19oug_match() {
                 df = $0;
                 sub("^[^;]*;", "", df);
                 if (!df)  next;
+                dp = df;
+                while (!(dp in ptot)) {
+                    ptot[dp] = pmin;
+                    sub("//*[^/]*$", "", dp);
+                    if (!dp)  break;
+                }
                 tau = 1.0 * ($2 - epochseconds) / meanlife;
                 prob = (tau < minlogprob) ? pmin : exp(tau);
                 ptot[df] += prob;
