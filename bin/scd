@@ -82,12 +82,18 @@ fi
 
 # load scd-ignore patterns if available
 if [[ -s $SCD_IGNORE ]]; then
+    setopt noglob
     <$SCD_IGNORE \
     while read p; do
         [[ $p != [\#]* ]] || continue
         [[ -n $p ]] || continue
+        # expand leading tilde if it has valid expansion
+        if [[ $p == [~]* ]] && ( : ${~p} ) 2>/dev/null; then
+            p=${~p}
+        fi
         scdignore[$p]=1
     done
+    setopt glob
 fi
 
 # Private internal functions are prefixed with _scd_Y19oug_.
