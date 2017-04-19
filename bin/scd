@@ -342,9 +342,8 @@ _scd_Y19oug_match() {
 
     # discard ignored directories
     if [[ -z ${opt_all} ]]; then
-        for p in ${(k)scdignore}; do
-            p="*~$p"
-            drank=( ${(kv)drank[(I)${~p}]} )
+        for d in ${(k)drank}; do
+            [[ -z ${scdignore[(k)$d]} ]] || unset "drank[$d]"
         done
     fi
 
