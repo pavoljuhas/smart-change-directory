@@ -105,8 +105,14 @@ trap 'unfunction -m "_scd_Y19oug_*"' EXIT
 _scd_Y19oug_abspath() {
     set -A $1 ${(ps:\0:)"$(
         unfunction -m "*"; shift
+	fscasesensitive=true
+	if [[ ${OSTYPE} == darwin* ]]; then
+	    fscasesensitive=false
+	fi
         for d; do
-            cd $d && print -Nr -- $PWD && cd $OLDPWD
+            pushd $d || continue
+	    $fscasesensitive && print -Nr -- $PWD || print -Nr -- (#i)$PWD
+	    popd
         done
         )"}
 }
