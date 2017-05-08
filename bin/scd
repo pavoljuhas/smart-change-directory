@@ -42,6 +42,12 @@ local SCD_IGNORE=~/.scdignore
 # Minimum logarithm of probability.  Avoids out of range warning in exp().
 local -r MINLOGPROB=-15
 
+# When false, use case-insensitive globbing to fix PWD capitalization.
+local PWDCASECORRECT=true
+if [[ ${OSTYPE} == darwin* ]]; then
+    PWDCASECORRECT=false
+fi
+
 local a d m p i maxrank threshold
 local opt_help opt_add opt_unindex opt_recursive opt_verbose
 local opt_alias opt_unalias opt_all opt_list
@@ -104,15 +110,14 @@ trap 'unfunction -m "_scd_Y19oug_*"' EXIT
 # works faster than the (:a) modifier and is compatible with zsh 4.2.6
 _scd_Y19oug_abspath() {
     set -A $1 ${(ps:\0:)"$(
-        unfunction -m "*"; shift
-	fscasesensitive=true
-	if [[ ${OSTYPE} == darwin* ]]; then
-	    fscasesensitive=false
-	fi
+        unfunction -m "*"
+        shift
         for d; do
             pushd $d || continue
-	    $fscasesensitive && print -Nr -- $PWD || print -Nr -- (#i)$PWD
-	    popd
+            $PWDCASECORRECT &&
+                print -Nr -- $PWD ||
+                print -Nr -- (#i)$PWD
+            popd
         done
         )"}
 }
@@ -206,7 +211,9 @@ if [[ -s $SCD_HISTFILE ]] && \
             d=${a#*;}
             [[ -z ${scdignore[(k)$d]} ]] || continue
             [[ -d $d ]] || continue
-            print -r -- $a
+            $PWDCASECORRECT || d=( (#i)${d} )
+            t=${a%%;*}
+            print -r -- "${t};${d}"
         done
         )"}
     )
