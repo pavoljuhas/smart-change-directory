@@ -203,25 +203,31 @@ _scd_Y19oug_compress() {
 # Rewrite directory index if it is at least 20% oversized.
 if [[ -s $SCD_HISTFILE ]] && \
 (( $(wc -l <$SCD_HISTFILE) > 1.2 * $SCD_HISTSIZE )); then
-    # compress repeated entries
-    m=( ${(f)"$(_scd_Y19oug_compress $SCD_HISTFILE)"} )
-    # purge non-existent and ignored directories
-    m=( ${(f)"$(
-        for a in $m; do
-            d=${a#*;}
-            [[ -z ${scdignore[(k)$d]} ]] || continue
-            [[ -d $d ]] || continue
-            $PWDCASECORRECT || d=( (#i)${d} )
-            t=${a%%;*}
-            print -r -- "${t};${d}"
-        done
-        )"}
-    )
-    # cut old entries if still oversized
-    if [[ $#m -gt $SCD_HISTSIZE ]]; then
-        m=( ${m[-$SCD_HISTSIZE,-1]} )
-    fi
-    print -lr -- $m >| ${SCD_HISTFILE}
+    # Compress repeated entries in a background process.
+    (
+        m=( ${(f)"$(_scd_Y19oug_compress $SCD_HISTFILE)"} )
+        curhistsize=( $(wc -l <$SCD_HISTFILE) )
+        # purge non-existent and ignored directories
+        m=( ${(f)"$(
+            for a in $m; do
+                d=${a#*;}
+                [[ -z ${scdignore[(k)$d]} ]] || continue
+                [[ -d $d ]] || continue
+                $PWDCASECORRECT || d=( (#i)${d} )
+                t=${a%%;*}
+                print -r -- "${t};${d}"
+            done
+            )"}
+        )
+        # cut old entries if still oversized
+        if [[ $#m -gt $SCD_HISTSIZE ]]; then
+            m=( ${m[-$SCD_HISTSIZE,-1]} )
+        fi
+        # Checking existence of many directories could have taken a while.
+        # Append any index entries added in meantime.
+        m+=( ${(f)"$(sed "1,${curhistsize}d" $SCD_HISTFILE)"} )
+        print -lr -- $m >| ${SCD_HISTFILE}
+    ) &|
 fi
 
 # Determine the last recorded directory
