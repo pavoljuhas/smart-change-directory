@@ -1,10 +1,12 @@
 #!/bin/zsh -f
 
 emulate -L zsh
+
+local RUNNING_AS_COMMAND=
 local EXIT=return
 if [[ $(whence -w $0) == *:' 'command ]]; then
     emulate -R zsh
-    local RUNNING_AS_COMMAND=1
+    RUNNING_AS_COMMAND=1
     EXIT=exit
 fi
 
