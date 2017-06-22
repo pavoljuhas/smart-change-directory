@@ -1,6 +1,6 @@
 #!/bin/zsh -f
 
-emulate -LR zsh
+emulate -L zsh
 
 local RUNNING_AS_COMMAND=
 local EXIT=return
