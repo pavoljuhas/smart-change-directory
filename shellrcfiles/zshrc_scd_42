@@ -1,11 +1,15 @@
 ## Try to load scd as a shell function either from FPATH or from PATH
 ## if installed at either place.  Complain if scd cannot be found.
-if ( found=( ${^fpath}/scd(N-.) ) && [[ -n ${found} ]] ); then
-    autoload scd
+if [[ ${+functions[scd]} == 1 ]]; then
+    : "do nothing because scd is already defined."
+elif ( found=( ${^fpath}/scd(N-.) ) && [[ -n ${found} ]] ); then
+    autoload -Uz scd
 elif fpath=( ${fpath} =scd(:h) ); then
-    autoload +X scd || unfunction -m scd
+    autoload -Uz +X scd
     fpath[-1]=( )
-else
+fi
+
+if [[ ${+functions[scd]} == 0 ]]; then
     print -u2 "scd could not be found neither in FPATH nor in PATH."
 fi
 
