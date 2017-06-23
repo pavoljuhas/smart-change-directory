@@ -111,15 +111,16 @@ trap 'unfunction -m "_scd_Y19oug_*"' EXIT
 # works faster than the (:a) modifier and is compatible with zsh 4.2.6
 _scd_Y19oug_abspath() {
     set -A $1 ${(ps:\0:)"$(
-        setopt pushdsilent
         unfunction -m "*"
+        unalias -m "*"
+        CDPATH=
         shift
         for d; do
-            pushd $d || continue
+            cd $d || continue
             $PWDCASECORRECT &&
                 print -Nr -- $PWD ||
                 print -Nr -- (#i)$PWD
-            popd
+            cd -
         done
         )"}
 }
