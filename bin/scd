@@ -302,7 +302,7 @@ fi
 
 # The "action" function is called when there is just one target directory.
 _scd_Y19oug_action() {
-    cd $1 || return $?
+    builtin cd $1 || return $?
     if [[ -z $SCD_SCRIPT && -n $RUNNING_AS_COMMAND ]]; then
         print -u2 "Warning: running as command with SCD_SCRIPT undefined."
     fi
