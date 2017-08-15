@@ -56,7 +56,7 @@ local -A drank dalias scdignore
 local dmatching
 local last_directory
 
-setopt extendedhistory extendedglob noautonamedirs brace_ccl
+setopt extendedglob noautonamedirs brace_ccl
 
 # If SCD_SCRIPT is defined make sure that that file exists and is empty.
 # This removes any old previous commands from the SCD_SCRIPT file.
