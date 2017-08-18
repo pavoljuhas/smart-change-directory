@@ -388,11 +388,10 @@ _scd_Y19oug_match() {
 
     # build a list of matching directories reverse-sorted by their probabilities
     dmatching=( ${(f)"$(
-        for d p in ${(kv)drank}; do
-            print -r -- "$p $d";
-        done | sort -grk1 | cut -d ' ' -f 2-
-        )"}
+        builtin printf "%s %s\n" ${(Oakv)drank} |
+        /usr/bin/sort -grk1 )"}
     )
+    dmatching=( ${dmatching#*[[:blank:]]} )
 
     # do not match $HOME or $PWD when run without arguments
     if [[ $# == 0 ]]; then
