@@ -215,12 +215,12 @@ _scd_Y19oug_compress() {
 }
 
 # Rewrite directory index if it is at least 20% oversized.
-if [[ -s $SCD_HISTFILE ]] && \
-(( $(wc -l <$SCD_HISTFILE) > 1.2 * $SCD_HISTSIZE )); then
+local curhistsize
+if [[ -s $SCD_HISTFILE ]] && curhistsize=$(wc -l <$SCD_HISTFILE) && \
+(( $curhistsize > 1.2 * $SCD_HISTSIZE )); then
     # Compress repeated entries in a background process.
     (
         m=( ${(f)"$(_scd_Y19oug_compress $SCD_HISTFILE)"} )
-        curhistsize=( $(wc -l <$SCD_HISTFILE) )
         # purge non-existent and ignored directories
         m=( ${(f)"$(
             for a in $m; do
