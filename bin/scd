@@ -26,6 +26,7 @@ Options:
   -A, --all         display all directories even those excluded by patterns
                     in ~/.scdignore.  Disregard unique match for a directory
                     alias and filtering of less likely paths.
+  -p, --push        use "pushd" to change to the target directory.
   --list            show matching directories and exit.
   -v, --verbose     display directory rank in the selection menu.
   -h, --help        display this message and exit.
@@ -51,7 +52,7 @@ fi
 
 local a d m p i maxrank threshold
 local opt_help opt_add opt_unindex opt_recursive opt_verbose
-local opt_alias opt_unalias opt_all opt_list
+local opt_alias opt_unalias opt_all opt_push opt_list
 local -A drank dalias scdignore
 local dmatching
 local last_directory
@@ -72,7 +73,7 @@ zmodload -i zsh/parameter
 zparseopts -D -E -- a=opt_add -add=opt_add -unindex=opt_unindex \
     r=opt_recursive -recursive=opt_recursive \
     -alias:=opt_alias -unalias=opt_unalias \
-    A=opt_all -all=opt_all -list=opt_list \
+    A=opt_all -all=opt_all p=opt_push -push=opt_push -list=opt_list \
     v=opt_verbose -verbose=opt_verbose h=opt_help -help=opt_help \
     || $EXIT $?
 
@@ -313,12 +314,14 @@ fi
 
 # The "action" function is called when there is just one target directory.
 _scd_Y19oug_action() {
-    builtin cd $1 || return $?
+    local cdcmd=cd
+    [[ -z ${opt_push} ]] || cdcmd=pushd
+    builtin $cdcmd $1 || return $?
     if [[ -z $SCD_SCRIPT && -n $RUNNING_AS_COMMAND ]]; then
         print -u2 "Warning: running as command with SCD_SCRIPT undefined."
     fi
     if [[ -n $SCD_SCRIPT ]]; then
-        print -r "cd ${(q)1}" >| $SCD_SCRIPT
+        print -r "${cdcmd} ${(q)1}" >| $SCD_SCRIPT
     fi
 }
 
