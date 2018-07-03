@@ -14,14 +14,14 @@ myargs=(
     # options for manipulating directory index
     - index
     "(--recursive -r)"{--recursive,-r}"[use recursive --add or --unindex]"
-    "*:directory:_path_files -/"
     "($indexopts)"{--add,-a}"[add specified directories to the index]"
     "($indexopts)--unindex[remove specified directories from the index]"
+    "*:directory:{ (( ${words[(I)-a|--add|--unindex]} )) && _path_files -/ }"
 
     # define new directory alias
     - alias
     "--alias=[create alias for this or given directory]:directory-alias:()"
-    "*:directory:_path_files -/"
+    '1:directory:{ (( words[(I)--alias*] )) && _path_files -/ }'
 
     # remove definition of directory alias
     - unalias
@@ -30,7 +30,7 @@ myargs=(
 
     # act on the directory change
     - scd
-    "(--all -A)"{--all,-A}"[find also less likely and ignored paths]"
+    "(--all -A)"{--all,-A}"[include less likely and ignored paths]"
     "--list[print matching directories and exit]"
     "(--verbose -v)"{--verbose,-v}"[show directory ranking and full paths]"
     "(--push -p)"{--push,-p}"[change directory with 'pushd']"
@@ -54,8 +54,8 @@ case $state in
                          scdaliases+=( $k:${v/${~phome}/"~"${match[1]}} )
                      done &&
                      typeset -p scdaliases )"
+            _describe -t scdaliases scdalias scdaliases
         fi
-        _describe -t scdaliases scdalias scdaliases
         ;;
 
     (scd-targets)
