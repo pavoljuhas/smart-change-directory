@@ -167,15 +167,23 @@ def unload_ipython_extension(ipython):
 
 
 def _scd_record_cwd(cwd=None):
-    if not _scd_active:  return
+    import time
     global _scd_last_directory
+    if not _scd_active:
+        return
     if cwd is None:
         cwd = os.getcwd()
     if cwd == _scd_last_directory:
         return
     _scd_last_directory = cwd
-    args = [scd_executable, '--add', cwd]
-    subprocess.call(args)
+    scd_histfile = (os.environ.get('SCD_HISTFILE') or
+                    os.path.expanduser('~/.scdhistory'))
+    is_new_file = not os.path.exists(scd_histfile)
+    fmt = ': {:.0f}:0;{}\n'
+    with open(scd_histfile, 'a') as fp:
+        fp.write(fmt.format(time.time(), cwd))
+    if is_new_file:
+        os.chmod(scd_histfile, 0o600)
     return
 _scd_last_directory = ''
 
