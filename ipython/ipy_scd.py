@@ -29,8 +29,6 @@ assert ipyversion >= [0, 13], "ipy_scd requires IPython 0.13 or later."
 
 import os
 import subprocess
-import tempfile
-import shlex
 
 from IPython.core.magic import Magics, magics_class, line_magic
 
@@ -93,8 +91,6 @@ class SCDMagics(Magics):
         -v, --verbose     display directory rank in the selection menu.
         -h, --help        display this message and exit.
         '''
-        import os
-        import subprocess
         import tempfile
         import shlex
         scdfile = tempfile.NamedTemporaryFile('r')
