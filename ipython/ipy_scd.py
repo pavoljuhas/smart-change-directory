@@ -87,6 +87,7 @@ class SCDMagics(Magics):
         -A, --all         display all directories even those excluded by patterns
                           in ~/.scdignore.  Disregard unique match for a directory
                           alias and filtering of less likely paths.
+        -p, --push        use "pushd" to change to the target directory.
         --list            show matching directories and exit.
         -v, --verbose     display directory rank in the selection menu.
         -h, --help        display this message and exit.
@@ -99,10 +100,12 @@ class SCDMagics(Magics):
         args = [scd_executable] + shlex.split(str(arg))
         retcode = subprocess.call(args, env=env)
         cmd = scdfile.read()
-        if retcode == 0 and cmd.startswith('cd '):
-            _cdcommands.cd(cmd[3:])
-            cwd = shlex.split(cmd[3:])[0]
-            _scd_record_cwd(cwd)
+        scdfile.close()
+        cpth = cmd.split(' ', 1)
+        if retcode == 0 and cpth[0] in ('cd', 'pushd'):
+            fcd = getattr(_cdcommands, cpth[0])
+            fcd(cpth[1])
+            _scd_record_cwd()
         return
 
     from IPython.core.magics import OSMagics
