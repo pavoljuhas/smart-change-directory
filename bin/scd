@@ -338,7 +338,7 @@ _scd_Y19oug_match() {
     fi
 
     # support "./" as an alias for $PWD to match only subdirectories.
-    argv=( ${argv/(#s).\/(#e)/(#s)$PWD/#*} )
+    argv=( ${argv/(#s).\/(#e)/(#s)$PWD(|/*)(#e)} )
 
     # support "$" as an anchor at the end of directory name.
     argv=( ${argv/(#m)?[$](#e)/${MATCH[1]}(#e)} )
