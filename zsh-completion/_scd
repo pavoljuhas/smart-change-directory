@@ -38,7 +38,7 @@ myargs=(
     "*:patterns:()"
 )
 
-_arguments -C $myargs && ret=0
+_arguments -S -C $myargs && ret=0
 
 
 if { (( ${state[(I)scd-target]} )) || \
