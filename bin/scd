@@ -340,6 +340,12 @@ _scd_Y19oug_match() {
     # support "./" as an alias for $PWD to match only subdirectories.
     argv=( ${argv/(#s).\/(#e)/(#s)$PWD(|/*)(#e)} )
 
+    # support "./pat" as an alias for $PWD/pat.
+    argv=( ${argv/(#m)(#s).\/?*/(#s)$PWD${MATCH#.}} )
+
+    # support "^" as an anchor for the root directory, e.g., "^$HOME".
+    argv=( ${argv/(#m)(#s)\^?*/(#s)${${~MATCH[2,-1]}}} )
+
     # support "$" as an anchor at the end of directory name.
     argv=( ${argv/(#m)?[$](#e)/${MATCH[1]}(#e)} )
 
