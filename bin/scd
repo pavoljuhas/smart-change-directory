@@ -337,11 +337,14 @@ _scd_Y19oug_match() {
         return
     fi
 
+    # quote brackets when PWD is /Volumes/[C]/
+    local qpwd=${PWD//(#m)[][]/\\${MATCH}}
+
     # support "./" as an alias for $PWD to match only subdirectories.
-    argv=( ${argv/(#s).\/(#e)/(#s)$PWD(|/*)(#e)} )
+    argv=( ${argv/(#s).\/(#e)/(#s)${qpwd}(|/*)(#e)} )
 
     # support "./pat" as an alias for $PWD/pat.
-    argv=( ${argv/(#m)(#s).\/?*/(#s)$PWD${MATCH#.}} )
+    argv=( ${argv/(#m)(#s).\/?*/(#s)${qpwd}${MATCH#.}} )
 
     # support "^" as an anchor for the root directory, e.g., "^$HOME".
     argv=( ${argv/(#m)(#s)\^?*/(#s)${${~MATCH[2,-1]}}} )
