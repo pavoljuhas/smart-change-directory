@@ -99,7 +99,7 @@ class SCDMagics(Magics):
         env['SCD_SCRIPT'] = scdfile.name
         args = [scd_executable] + shlex.split(str(arg))
         retcode = subprocess.call(args, env=env)
-        cmd = scdfile.read()
+        cmd = scdfile.read().rstrip()
         scdfile.close()
         cpth = cmd.split(' ', 1)
         if retcode == 0 and cpth[0] in ('cd', 'pushd'):
