@@ -321,7 +321,11 @@ _scd_Y19oug_action() {
         print -u2 "Warning: running as command with SCD_SCRIPT undefined."
     fi
     if [[ -n $SCD_SCRIPT ]]; then
-        print -r "${cdcmd} ${(q)1}" >| $SCD_SCRIPT
+        local d=$1
+        if [[ $OSTYPE == cygwin && ${(L)SCD_SCRIPT} == *.bat ]]; then
+            d=$(cygpath -aw .)
+        fi
+        print -r "${cdcmd} ${(qqq)d}" >| $SCD_SCRIPT
     fi
 }
 
