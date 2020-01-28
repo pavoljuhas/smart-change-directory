@@ -289,6 +289,8 @@ if [[ -n $opt_unindex ]]; then
             argv[i]=${d}
         fi
     done
+    # strip trailing slashes, but preserve the root path
+    argv=( ${argv/(#m)?\/##(#e)/${MATCH[1]}} )
     m="$(awk -v recursive=${opt_recursive} '
         BEGIN {
             for (i = 2; i < ARGC; ++i) {
