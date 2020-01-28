@@ -295,12 +295,14 @@ if [[ -n $opt_unindex ]]; then
                 argset[ARGV[i]] = 1;
                 delete ARGV[i];
             }
+            unindex_root = ("/" in argset);
         }
         1 {
             d = $0;  sub(/^[^;]*;/, "", d);
             if (d in argset)  next;
         }
         recursive {
+            if (unindex_root)  exit;
             for (a in argset) {
                 if (substr(d, 1, length(a) + 1) == a"/")  next;
             }
