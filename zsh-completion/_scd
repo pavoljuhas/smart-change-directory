@@ -52,7 +52,10 @@ then
             source ~/.scdalias.zsh &&
             for k v in ${(kv)nameddirs}; do
                 scdaliases+=( $k:${v/${~phome}/"~"${match[1]}} )
-            done &&
+            done
+            if [[ -n $scdaliases && -z ${(M)scdaliases:#OLD:*} ]]; then
+                scdaliases+=( 'OLD:aliases to non-existent paths' )
+            fi
             typeset -p scdaliases )"
     _describe -t scdaliases scdalias scdaliases
 fi
