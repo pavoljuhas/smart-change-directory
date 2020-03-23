@@ -84,6 +84,7 @@ class SCDMagics(Magics):
                           store it in ~/.scdalias.zsh.
         --unalias         remove ALIAS definition for the current or specified
                           directory from ~/.scdalias.zsh.
+                          Use "OLD" to purge aliases to non-existent directories.
         -A, --all         display all directories even those excluded by patterns
                           in ~/.scdignore.  Disregard unique match for a directory
                           alias and filtering of less likely paths.

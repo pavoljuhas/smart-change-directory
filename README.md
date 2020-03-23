@@ -36,7 +36,8 @@ scd [options] [pattern1 pattern2 ...]
 
 --unalias</dt><dd>
   remove ALIAS definition for the current or specified directory from
-  <em>~/.scdalias.zsh</em>.</dd><dt>
+  <em>~/.scdalias.zsh</em>.  Use "OLD" to purge aliases to non-existent
+  directories.</dd><dt>
 
 -A, --all</dt><dd>
   display all directories even those excluded by patterns in

@@ -23,6 +23,7 @@ Options:
                     store it in ~/.scdalias.zsh.
   --unalias         remove ALIAS definition for the current or specified
                     directory from ~/.scdalias.zsh.
+                    Use "OLD" to purge aliases to non-existent directories.
   -A, --all         display all directories even those excluded by patterns
                     in ~/.scdignore.  Disregard unique match for a directory
                     alias and filtering of less likely paths.
@@ -149,9 +150,22 @@ fi
 
 # undefine one or more directory aliases
 if [[ -n $opt_unalias ]]; then
+    local -U uu
     local ec=0
-    m=( )
-    for p in ${*:-${PWD}}; do
+    uu=( ${*:-${PWD}} )
+    if (( ${uu[(I)OLD]} && ${+nameddirs[OLD]} == 0 )); then
+        uu=( ${uu:#OLD} ${(ps:\0:)"$(
+            hash -dr
+            if [[ -r $SCD_ALIAS ]]; then
+                source $SCD_ALIAS
+            fi
+            for a d in ${(kv)nameddirs}; do
+                [[ -d $d ]] || print -Nr -- $a
+            done
+            )"}
+        )
+    fi
+    for p in $uu; do
         d=$p
         if [[ ${+nameddirs[$d]} == 0 && -d $d ]]; then
             _scd_Y19oug_abspath d $d
