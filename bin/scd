@@ -206,6 +206,7 @@ _scd_Y19oug_compress() {
             FS = "[:;]";
             pmin = exp(minlogprob);
         }
+        /^: deleted:0;/ { next; }
         length($0) < 4096 && $2 > 0 {
             df = $0;
             sub("^[^;]*;", "", df);
@@ -387,6 +388,12 @@ _scd_Y19oug_match() {
                 FS = "[:;]";
                 pmin = exp(minlogprob);
             }
+            /^: deleted:0;/ {
+                df = $0;
+                sub("^[^;]*;", "", df);
+                delete ptot[df];
+                next;
+            }
             length($0) < 4096 && $2 > 0 {
                 df = $0;
                 sub("^[^;]*;", "", df);
@@ -436,12 +443,20 @@ _scd_Y19oug_match() {
     fi
 
     # keep at most SCD_MENUSIZE of matching and valid directories
+    # mark up any deleted entries in the index
+    local -A isdeleted
     m=( )
+    isdeleted=( )
     for d in $dmatching; do
         [[ ${#m} == $SCD_MENUSIZE ]] && break
-        [[ -d $d && -x $d ]] && m+=$d
+        (( ${+isdeleted[$d]} == 0 )) || continue
+        [[ -d $d ]] || { isdeleted[$d]=1; continue }
+        [[ -x $d ]] && m+=$d
     done
     dmatching=( $m )
+    if [[ -n ${isdeleted} ]]; then
+        print -lr -- ": deleted:0;"${^${(k)isdeleted}} >> $SCD_HISTFILE
+    fi
 
     # find the maximum rank
     maxrank=0.0
