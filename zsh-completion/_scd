@@ -53,8 +53,9 @@ then
             for k v in ${(kv)nameddirs}; do
                 scdaliases+=( $k:${v/${~phome}/"~"${match[1]}} )
             done
-            if [[ -n $scdaliases && -z ${(M)scdaliases:#OLD:*} ]]; then
-                scdaliases+=( 'OLD:aliases to non-existent paths' )
+            complete_unalias=${+opt_args[unalias---unalias]}
+            if (( complete_unalias && ! ${+nameddirs[OLD]} )); then
+                scdaliases+=( 'OLD:all aliases to non-existent paths' )
             fi
             typeset -p scdaliases )"
     _describe -t scdaliases scdalias scdaliases
