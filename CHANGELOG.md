@@ -1,5 +1,42 @@
 # Release notes
 
+## Unreleased – Version 1.4
+
+### Added
+
+- Support for unloading of `ipy_scd.py` within IPython session.
+- Exclusion of paths according to patterns in `~/.scdignore`.
+- Implicit path matching also for all parents of indexed paths.
+- Conversion to canonical case when indexing paths on Mac OS X.
+- Option `-p,--push` to invoke `pushd` instead of `cd`.
+- Command-line completion for `scd` in zsh.
+- Special pattern `./` to match only under the current directory.
+- Start-of-path matching with `^`, for example, `^/tmp`.
+- Cleanup of obsolete aliases using `scd --unalias OLD`.
+
+### Changed
+
+- Make IPython extension compatible with Python 3.
+- Upgrade to extensions API in IPython 5.
+- Enable scd options that follow positional arguments.
+- Always use smart case matching (with zsh `(#l)` globbing flag).
+- Support multiple targets for `scd --unalias`.
+
+### Removed
+
+- Support for IPython 0.12 and older.
+
+### Fixed
+
+- Slow scd response when index is compressed and trimmed.
+  Rewrite the index in background instead.
+- Spurious undefinition of `scd` after repeated loading of `zshrc_scd`.
+- Undesired extra output when `CDPATH` is set in the invoking shell.
+- Recursive unindexing from the root directory to produce empty index.
+- Slow response due to path-check latency on some network file systems.
+  Remove deleted paths from the index.
+
+
 ## Version 1.3 – 2015-04-13
 
 ### Changed
