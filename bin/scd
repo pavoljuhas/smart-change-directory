@@ -165,6 +165,7 @@ if [[ -n $opt_unalias ]]; then
             )"}
         )
     fi
+    m=( )
     for p in $uu; do
         d=$p
         if [[ ${+nameddirs[$d]} == 0 && -d $d ]]; then
