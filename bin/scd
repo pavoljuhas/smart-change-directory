@@ -376,6 +376,9 @@ _scd_Y19oug_match() {
     # support "$" as an anchor at the end of directory name.
     argv=( ${argv/(#m)?[$](#e)/${MATCH[1]}(#e)} )
 
+    # support ":t" to require match in the tail component
+    argv=( ${argv/(#m)?:t(#e)/${MATCH[1,-3]}[^/]#(#e)} )
+
     # calculate rank of all directories in SCD_HISTFILE and store it in drank.
     # include a dummy entry to avoid issues with splitting an empty string.
     [[ -s $SCD_HISTFILE ]] && drank=( ${(f)"$(
