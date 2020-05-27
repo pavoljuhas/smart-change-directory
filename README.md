@@ -82,7 +82,6 @@ scd [options] [pattern1 pattern2 ...]
       be thus expanded as `~NAME` in the shell.  If you use the
       [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh)
       framework you may just activate the `scd` plugin instead.
-      If you have zsh 4.2 or older source `zshrc_scd_42`.
 
     * *bash*
 
