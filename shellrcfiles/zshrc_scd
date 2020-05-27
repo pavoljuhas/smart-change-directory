@@ -1,12 +1,20 @@
-## Try to load scd as a shell function either from FPATH or from PATH
-## if installed at either place.  Complain if scd cannot be found.
+## Load scd function and its completion helper according to repository layout.
+## Keep zsh-completion in fpath in case compinit is called after this script.
 if [[ ${+functions[scd]} == 1 ]]; then
     : "do nothing because scd is already defined."
-elif ( found=( ${^fpath}/scd(N-.) ) && [[ -n ${found} ]] ); then
-    autoload -Uz scd
-elif fpath=( ${fpath} =scd(:h) ); then
+else
+    _zshrc_scd_fpath=( $fpath )
+    _zshrc_scd_basedir=${${(%):-%x}:A:h:h}
+    fpath=( ${_zshrc_scd_basedir}/bin
+            ${_zshrc_scd_basedir}/zsh-completion
+            $fpath )
     autoload -Uz +X scd
-    fpath[-1]=( )
+    if [[ ${+functions[compdef]} == 1 ]]; then
+        autoload -Uz +X _scd
+        compdef _scd scd
+    fi
+    fpath=( $_zshrc_scd_fpath ${_zshrc_scd_basedir}/zsh-completion )
+    unset -m "_zshrc_scd_*"
 fi
 
 
