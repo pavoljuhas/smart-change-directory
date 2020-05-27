@@ -13,6 +13,7 @@
 - Special pattern `./` to match only under the current directory.
 - Start-of-path matching with `^`, for example, `^/tmp`.
 - Cleanup of obsolete aliases using `scd --unalias OLD`.
+- Special pattern `:PAT` to match PAT over the tail component.
 
 ### Changed
 
@@ -21,10 +22,13 @@
 - Enable scd options that follow positional arguments.
 - Always use smart case matching (with zsh `(#l)` globbing flag).
 - Support multiple targets for `scd --unalias`.
+- Prefer scd alias expansion when it also exists as a directory.
+- Make `zshrc_scd` load functions from relative repository paths.
 
 ### Removed
 
 - Support for IPython 0.12 and older.
+- Support for zsh 4.2 and older.
 
 ### Fixed
 
