@@ -21,9 +21,9 @@ fi
 ## If the scd function exists, define a change-directory-hook function
 ## to record visited directories in the scd index.
 if [[ ${+functions[scd]} == 1 ]]; then
-    scd_chpwd_hook() { scd --add $PWD }
+    chpwd_scd() { scd --add $PWD }
     autoload -Uz add-zsh-hook
-    add-zsh-hook chpwd scd_chpwd_hook
+    add-zsh-hook chpwd chpwd_scd
 else
     print -u2 "scd could not be found neither in FPATH nor in PATH."
 fi
