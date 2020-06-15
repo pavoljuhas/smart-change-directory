@@ -24,6 +24,7 @@
 - Support multiple targets for `scd --unalias`.
 - Prefer scd alias expansion when it also exists as a directory.
 - Make `zshrc_scd` load functions from relative repository paths.
+- Rename hook function to `chpwd_scd`.
 
 ### Removed
 
