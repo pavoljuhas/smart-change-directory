@@ -18,7 +18,6 @@ scd can define persistent aliases, which match only their target paths.
 scd [options] [pattern1 pattern2 ...]
 ```
 
-
 ## PATTERNS
 
 Patterns may use all zsh [glob operators](
@@ -128,7 +127,6 @@ PAT$</dt><dd>
       . ~/Software/smart-change-directory/shellrcfiles/dashrc_scd
       ```
 
-
 ## Examples
 
 ```sh
@@ -197,7 +195,6 @@ scd xray
 :Scd --help
 ```
 
-
 ## Installation as IPython extension
 
 1. Copy or symlink [ipython/ipy_scd.py](ipython/ipy_scd.py)
@@ -228,7 +225,7 @@ scd xray
 %scd site pack
 ```
 
-# FILES
+## FILES
 
 <dl><dt>
 ~/.scdhistory</dt><dd>
@@ -246,7 +243,8 @@ scd xray
     are not applied in the <em>--all</em> mode.</dd>
 </dl>
 
-# ENVIRONMENT
+
+## ENVIRONMENT
 
 <dl><dt>
 SCD_HISTFILE</dt><dd>
