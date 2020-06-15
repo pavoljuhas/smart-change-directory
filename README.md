@@ -9,14 +9,35 @@ serves as an index of the known paths.  The directory index is updated after
 every `cd` command in the shell and can be also filled manually by running
 `scd -a`.  To switch to some directory, scd needs few fragments of the
 desired path to match with the index.  A selection menu is displayed in case
-of several matches, with a preference given to recently visited paths.  scd
-can create permanent directory aliases, which directly map to the target path.
+of several matches, with a preference given to recently visited paths.
+scd can define persistent aliases, which match only their target paths.
 
 ## SYNOPSIS
 
 ```sh
 scd [options] [pattern1 pattern2 ...]
 ```
+
+
+## PATTERNS
+
+Patterns may use all zsh [glob operators](
+http://zsh.sourceforge.net/Doc/Release/Expansion.html#Glob-Operators)
+available with *extendedglob* option.  Specified patterns must match
+the absolute path and at least one of them must match in the tail.
+Several special patterns are also recognized as follows:
+
+<dl><dt>
+^PAT</dt><dd>
+  PAT must match at the beginning of the path, for example, "^/home"</dd><dt>
+PAT$</dt><dd>
+  require PAT to match the end of the path, "man$"</dd><dt>
+./</dt><dd>
+  match only subdirectories of the current directory</dd><dt>
+:PAT</dt><dd>
+  require PAT to match over the tail component, ":doc", ":re/doc"</dd>
+</dl>
+
 
 ## OPTIONS
 

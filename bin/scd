@@ -11,10 +11,16 @@ fi
 
 local DOC='scd -- smart change to a recently used directory
 usage: scd [options] [pattern1 pattern2 ...]
-Go to a directory path that contains all fixed string patterns.  Prefer
-recent or frequently visited directories as found in the directory index.
+Go to a directory path that matches all patterns.  Prefer recent or
+frequently visited directories as found in the directory index.
 Display a selection menu in case of multiple matches.
 
+Special patterns:
+  ^PAT      match at the path root, "^/home"
+  PAT$      match paths ending with PAT, "man$"
+  ./        match paths under the current directory
+  :PAT      require PAT to span the tail, ":doc", ":re/doc"
+ 
 Options:
   -a, --add         add current or specified directories to the index.
   --unindex         remove current or specified directories from the index.
