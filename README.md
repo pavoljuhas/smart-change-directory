@@ -1,7 +1,7 @@
 # smart-change-directory (scd)
 
-[Z shell](http://www.zsh.org/) function for visiting any directory in
-a unix shell, [Vim](http://www.vim.org/) or [IPython](http://ipython.org/).
+[Z shell](http://www.zsh.org) function for visiting any directory in
+a unix shell, [Vim](http://www.vim.org) or [IPython](http://ipython.org).
 
 `scd` is a Z shell (Zsh) script for changing to any directory with a few
 keystrokes.  scd keeps history of the visited directories, which
@@ -154,46 +154,7 @@ scd xray
 
 ## Installation as Vim plugin
 
-1.  Copy or symlink [vim/plugin/scd.vim](vim/plugin/scd.vim)
-    file to the `~/.vim/plugin/` directory or source it from `.vimrc`.
-
-2.  If `scd` is not in the PATH, set the `g:scd_command` variable in `.vimrc`
-    to specify its location.
-    ```VimL
-    let g:scd_command = '/path/to/scd'
-    ```
-
-3.  When Vim is set to use zsh for system commands `:set shell=/bin/zsh`, scd
-    aliases can be expanded in Vim command mode, as in `:e ~foo/file.txt`.
-    Allow this by adding the following line to `~/.zshenv`
-    ```sh
-    if [[ -s ~/.scdalias.zsh ]]; then source ~/.scdalias.zsh; fi
-    ```
-
-## Examples
-
-```VimL
-" add ~/.vim/ and its subdirectories to the scd directory index
-:Scd -ar ~/.vim
-
-" jump to the ~/.vim/ftplugin/ directory
-:Scd vi ftpl
-
-" change to a recent directory ending with "im"
-:Scd im$
-
-" show selection menu with directories ranked by likelihood
-:Scd -v
-
-" same as Scd, but use the :lcd Vim command
-:Slcd
-
-" complete scd-defined directory aliases
-:Scd <Tab>
-
-" display a brief usage information for :Scd
-:Scd --help
-```
+Please refer to https://github.com/pavoljuhas/scd.vim.
 
 ## Installation as IPython extension
 
