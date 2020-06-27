@@ -30,6 +30,7 @@
 
 - Support for IPython 0.12 and older.
 - Support for zsh 4.2 and older.
+- Vim plugin files.  Host them at https://github.com/pavoljuhas/scd.vim.
 
 ### Fixed
 
