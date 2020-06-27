@@ -1,6 +1,6 @@
 # Release notes
 
-## Unreleased – Version 1.4
+## Version 1.4.0 – 2020-06-27
 
 ### Added
 
