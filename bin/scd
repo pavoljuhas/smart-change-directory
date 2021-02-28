@@ -286,7 +286,13 @@ _scd_Y19oug_record() {
 }
 
 if [[ -n $opt_add ]]; then
-    m=( ${^${argv:-$PWD}}(N-/) )
+    m=( ${(u)argv:-$PWD} )
+    if [[ -n $opt_recursive ]]; then
+        m=( ${^m}(N-/) )
+    else
+        m=( ${^m}(Ne,'[[ -d $REPLY ]] || REPLY=${REPLY:h}',) )
+        m=( ${(u)m} )
+    fi
     _scd_Y19oug_abspath m ${m}
     _scd_Y19oug_record $m
     if [[ -n $opt_recursive ]]; then
