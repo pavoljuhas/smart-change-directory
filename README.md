@@ -33,8 +33,8 @@ PAT$</dt><dd>
   require PAT to match the end of the path, "man$"</dd><dt>
 ./</dt><dd>
   match only subdirectories of the current directory</dd><dt>
-:PAT</dt><dd>
-  require PAT to match over the tail component, ":doc", ":re/doc"</dd>
+PAT:</dt><dd>
+  require PAT to match over the tail component, "doc:", "re/doc:"</dd>
 </dl>
 
 

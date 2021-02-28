@@ -389,6 +389,10 @@ _scd_Y19oug_match() {
     # support "$" as an anchor at the end of directory name.
     argv=( ${argv/(#m)?[$](#e)/${MATCH[1]}(#e)} )
 
+    # support suffix ":" to match over the tail component.
+    argv=( ${argv/(#m)*?:(#e)/${MATCH[1,-2]}[^/]#(#e)} )
+
+    # DEPRECATED
     # support prefix ":" to match over the tail component.
     argv=( ${argv/(#m)(#s):?*/${MATCH[2,-1]}[^/]#(#e)} )
 
