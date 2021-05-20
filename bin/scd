@@ -466,18 +466,17 @@ _scd_Y19oug_match() {
 
     # keep at most SCD_MENUSIZE of matching and valid directories
     # mark up any deleted entries in the index
-    local -A isdeleted
+    local -a dirsdeleted
     m=( )
-    isdeleted=( )
+    dirsdeleted=( )
     for d in $dmatching; do
         [[ ${#m} == $SCD_MENUSIZE ]] && break
-        (( ${+isdeleted[$d]} == 0 )) || continue
-        [[ -d $d ]] || { isdeleted[$d]=1; continue }
+        [[ -d $d ]] || { dirsdeleted+=$d; continue }
         [[ -x $d ]] && m+=$d
     done
     dmatching=( $m )
-    if [[ -n ${isdeleted} ]]; then
-        print -lr -- ": deleted:0;"${^${(k)isdeleted}} >> $SCD_HISTFILE
+    if [[ -n ${dirsdeleted} ]]; then
+        print -lr -- ": deleted:0;"${^${(o)dirsdeleted}} >> $SCD_HISTFILE
     fi
 
     # find the maximum rank
