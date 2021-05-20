@@ -19,7 +19,7 @@ Special patterns:
   ^PAT      match at the path root, "^/home"
   PAT$      match paths ending with PAT, "man$"
   ./        match paths under the current directory
-  :PAT      require PAT to span the tail, ":doc", ":re/doc"
+  PAT:      require PAT to span the tail, "doc:", "re/doc:"
  
 Options:
   -a, --add         add current or specified directories to the index.
@@ -481,10 +481,7 @@ _scd_Y19oug_match() {
     fi
 
     # find the maximum rank
-    maxrank=0.0
-    for d in $dmatching; do
-        [[ ${drank[$d]} -lt maxrank ]] || maxrank=${drank[$d]}
-    done
+    maxrank=${drank[${dmatching[1]}]:-0.0}
 
     # discard all directories below the rank threshold
     threshold=$(( maxrank * SCD_THRESHOLD ))
