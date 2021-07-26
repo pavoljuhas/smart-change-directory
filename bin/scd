@@ -365,9 +365,10 @@ _scd_Y19oug_action() {
 # Select and order indexed directories by matching command-line patterns.
 # Set global arrays dmatching and drank.
 _scd_Y19oug_match() {
-    ## single argument that is an existing directory or directory alias
+    ## single argument that is an alias, existing directory or a file path
     if [[ -z $opt_all && $# == 1 ]] && \
-        [[ -d ${d::=${nameddirs[$1]}} || -d ${d::=$1} ]] && [[ -x $d ]];
+        [[ -d ${d::=${nameddirs[$1]}} || -d ${d::=$1} || \
+        ( $1 == */* && -e $1 && -n ${d::=${1:h}} ) ]] && [[ -x $d ]];
     then
         _scd_Y19oug_abspath dmatching $d
         drank[${dmatching[1]}]=1
