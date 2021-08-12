@@ -366,7 +366,7 @@ _scd_Y19oug_action() {
 # Set global arrays dmatching and drank.
 _scd_Y19oug_match() {
     ## single argument that is an alias, existing directory or a file path
-    if [[ -z $opt_all && $# == 1 ]] && \
+    if [[ -z $opt_all && $# == 1 && $1 != ./ ]] && \
         [[ -d ${d::=${nameddirs[$1]}} || -d ${d::=$1} || \
         ( $1 == */* && -e $1 && -n ${d::=${1:h}} ) ]] && [[ -x $d ]];
     then
@@ -379,10 +379,20 @@ _scd_Y19oug_match() {
     local qpwd=${PWD//(#m)[][]/\\${MATCH}}
 
     # support "./" as an alias for $PWD to match only subdirectories.
-    argv=( ${argv/(#s).\/(#e)/(#s)${qpwd}(|/*)(#e)} )
+    if (( ${argv[(I)./]} )); then
+        argv=( "(#s)${qpwd}/" ${argv:#./} )
+        if [[ $# == 1 ]]; then
+            argv=( "${1}*" )
+        fi
+    fi
 
     # support "./pat" as an alias for $PWD/pat.
-    argv=( ${argv/(#m)(#s).\/?*/(#s)${qpwd}${MATCH#.}} )
+    if (( ${argv[(I)./?*]} )); then
+        argv=( ${argv/(#m)(#s).\/?*/(#s)${qpwd}${MATCH#.}} )
+        if [[ $# == 1 ]]; then
+            argv=( "${1}*" )
+        fi
+    fi
 
     # support "^" as an anchor for the root directory, e.g., "^$HOME".
     argv=( ${argv/(#m)(#s)\^?*/(#s)${${~MATCH[2,-1]}}} )
