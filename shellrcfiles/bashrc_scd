@@ -13,5 +13,6 @@ scd() {
 ## Define a "cd" shell function that records visited directories in
 ## the scd index.
 cd() {
-    builtin cd "$@" && command scd --add "$PWD"
+    builtin cd "$@" || return $?
+    (( BASH_SUBSHELL )) || command scd --add "$PWD"
 }
