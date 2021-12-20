@@ -57,7 +57,7 @@ if [[ ${OSTYPE} == darwin* ]]; then
     PWDCASECORRECT=false
 fi
 
-local a d m p i maxrank threshold
+local a d m p i threshold
 local opt_help opt_add opt_unindex opt_recursive opt_verbose
 local opt_alias opt_unalias opt_all opt_push opt_list
 local -A drank dalias scdignore
@@ -456,13 +456,6 @@ _scd_Y19oug_match() {
     p="(#l)*(${(j:|:)argv})[^/]#"
     drank=( ${(kv)drank[(I)${~p}]} )
 
-    # discard ignored directories
-    if [[ -z ${opt_all} ]]; then
-        for d in ${(k)drank}; do
-            [[ -z ${scdignore[(k)$d]} ]] || unset "drank[$d]"
-        done
-    fi
-
     # build a list of matching directories reverse-sorted by their probabilities
     dmatching=( ${(f)"$(
         builtin printf "%s %s\n" ${(Oakv)drank} |
@@ -476,29 +469,25 @@ _scd_Y19oug_match() {
     fi
 
     # keep at most SCD_MENUSIZE of matching and valid directories
+    # discard ignored directories and directories below the rank threshold
     # mark up any deleted entries in the index
     local -a dirsdeleted
     m=( )
+    threshold=0
     dirsdeleted=( )
     for d in $dmatching; do
-        [[ ${#m} == $SCD_MENUSIZE ]] && break
+        [[ ${#m} != $SCD_MENUSIZE ]] || break
+        [[ -n ${opt_all} ]] || (( ${drank[$d]} >= threshold )) || break
+        [[ -n ${opt_all} || -z ${scdignore[(k)$d]} ]] || continue
         [[ -d $d ]] || { dirsdeleted+=$d; continue }
-        [[ -x $d ]] && m+=$d
+        [[ -x $d ]] || continue
+        m+=$d
+        (( threshold )) || threshold=$(( ${drank[$d]} * SCD_THRESHOLD ))
     done
     dmatching=( $m )
     if [[ -n ${dirsdeleted} ]]; then
         print -lr -- ": deleted:0;"${^${(o)dirsdeleted}} >> $SCD_HISTFILE
     fi
-
-    # find the maximum rank
-    maxrank=${drank[${dmatching[1]}]:-0.0}
-
-    # discard all directories below the rank threshold
-    threshold=$(( maxrank * SCD_THRESHOLD ))
-    if [[ -n ${opt_all} ]]; then
-        threshold=0
-    fi
-    dmatching=( ${^dmatching}(Ne:'(( ${drank[$REPLY]} >= threshold ))':) )
 }
 
 _scd_Y19oug_match $*
