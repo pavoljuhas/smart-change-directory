@@ -376,6 +376,12 @@ _scd_Y19oug_match() {
         return
     fi
 
+    # remove duplicate slashes
+    argv=( ${argv//\/\/##/\/} )
+
+    # allow trailing slash to match its parent directory
+    argv=( ${argv/(#m)(#s)([^.]|.[^\/])*\/(#e)/${MATCH%?}(\/|(#e))} )
+
     # support "./" as an alias for $PWD to match only subdirectories.
     if (( ${argv[(I)./]} )); then
         argv=( "(#s)${(q)PWD}/" ${argv:#./} )
