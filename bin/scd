@@ -57,6 +57,7 @@ if [[ ${OSTYPE} == darwin* ]]; then
     PWDCASECORRECT=false
 fi
 
+local MATCH
 local a d m p i threshold
 local opt_help opt_add opt_unindex opt_recursive opt_verbose
 local opt_alias opt_unalias opt_all opt_push opt_list
@@ -375,12 +376,9 @@ _scd_Y19oug_match() {
         return
     fi
 
-    # quote brackets when PWD is /Volumes/[C]/
-    local qpwd=${PWD//(#m)[][]/\\${MATCH}}
-
     # support "./" as an alias for $PWD to match only subdirectories.
     if (( ${argv[(I)./]} )); then
-        argv=( "(#s)${qpwd}/" ${argv:#./} )
+        argv=( "(#s)${(q)PWD}/" ${argv:#./} )
         if [[ $# == 1 ]]; then
             argv=( "${1}*" )
         fi
@@ -388,7 +386,7 @@ _scd_Y19oug_match() {
 
     # support "./pat" as an alias for $PWD/pat.
     if (( ${argv[(I)./?*]} )); then
-        argv=( ${argv/(#m)(#s).\/?*/(#s)${qpwd}${MATCH#.}} )
+        argv=( ${argv/(#m)(#s).\/?*/(#s)${(q)PWD}${MATCH#.}} )
         if [[ $# == 1 ]]; then
             argv=( "${1}*" )
         fi
