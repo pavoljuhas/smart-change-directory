@@ -80,7 +80,7 @@ class SCDMagics(Magics):
         ^PAT      match at the path root, "^/home"
         PAT$      match paths ending with PAT, "man$"
         ./        match paths under the current directory
-        :PAT      require PAT to span the tail, ":doc", ":re/doc"
+        PAT:      require PAT to span the tail, "doc:", "re/doc:"
 
         Options:
         -a, --add         add current or specified directories to the index.

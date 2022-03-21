@@ -20,7 +20,7 @@ Special patterns:
   PAT$      match paths ending with PAT, "man$"
   ./        match paths under the current directory
   PAT:      require PAT to span the tail, "doc:", "re/doc:"
- 
+
 Options:
   -a, --add         add current or specified directories to the index.
   --unindex         remove current or specified directories from the index.
@@ -408,10 +408,6 @@ _scd_Y19oug_match() {
 
     # support suffix ":" to match over the tail component.
     argv=( ${argv/(#m)*?:(#e)/${MATCH[1,-2]}[^/]#(#e)} )
-
-    # DEPRECATED
-    # support prefix ":" to match over the tail component.
-    argv=( ${argv/(#m)(#s):?*/${MATCH[2,-1]}[^/]#(#e)} )
 
     # calculate rank of all directories in SCD_HISTFILE and store it in drank.
     # include a dummy entry to avoid issues with splitting an empty string.
