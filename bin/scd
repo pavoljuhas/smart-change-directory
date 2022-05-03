@@ -263,9 +263,9 @@ curhistsize=$(wc -l <$SCD_HISTFILE) && \
             m=( ${m[-$SCD_HISTSIZE,-1]} )
         fi
         # Checking existence of many directories could have taken a while.
-        # Ensure index is still oversized (not trimmed in parallel) then
-        # append any index entries added in meantime.
-        if (( $(wc -l <$SCD_HISTFILE) > $SCD_HISTSIZE )); then
+        # Ensure index was not trimmed in a parallel scd process then
+        # append any index entries added in the meantime.
+        if (( $(wc -l <$SCD_HISTFILE) >= $curhistsize )); then
             m+=( ${(f)"$(sed "1,${curhistsize}d" $SCD_HISTFILE)"} )
             print -rC1 -- $m >| ${SCD_HISTFILE}
         fi
