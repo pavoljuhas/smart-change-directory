@@ -16,7 +16,7 @@ myargs=(
     "(--recursive -r)"{--recursive,-r}"[use recursive --add or --unindex]"
     "($indexopts)"{--add,-a}"[add specified directories to the index]"
     "($indexopts)--unindex[remove specified directories from the index]"
-    "*:directory:{ (( ${words[(I)-a|--add|--unindex]} )) && _path_files -/ }"
+    '*:directory:{ (( ${#opt_args[(i)index-##[au]*]} )) && _path_files -/ }'
 
     # define new directory alias
     - alias
@@ -26,7 +26,7 @@ myargs=(
     # remove definition of directory alias
     - unalias
     "--unalias[remove definition of directory alias]"
-    "*::directory alias:->scd-alias-target"
+    "*:directory alias:->scd-alias-target"
 
     # act on the directory change
     - scd
@@ -34,14 +34,15 @@ myargs=(
     "--list[print matching directories and exit]"
     "(--verbose -v)"{--verbose,-v}"[show directory ranking and full paths]"
     "(--push -p)"{--push,-p}"[change directory with 'pushd']"
-    "1::directory alias:->scd-alias-target"
+    "1:directory alias:->scd-alias-target"
     "*:patterns:()"
 )
 
-_arguments -S -C $myargs && ret=0
+_arguments -s -S -C : $myargs && ret=0
 
 
-if [[ "$state" == scd-alias-target && -s ~/.scdalias.zsh ]]; then
+if [[ "$state" == scd-alias-target && -s ~/.scdalias.zsh ]] && \
+    (( ${#opt_args} || ${#words} == 2 )) ; then
     local -a scdaliases
     scdaliases=( )
     eval "$(setopt extendedglob
