@@ -57,4 +57,5 @@ if [[ "$state" == scd-alias-target && -s ~/.scdalias.zsh ]]; then
             fi
             typeset -p scdaliases )"
     _describe -t scdaliases scdalias scdaliases
+    ret=0
 fi
