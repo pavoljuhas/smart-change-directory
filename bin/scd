@@ -214,7 +214,7 @@ _scd_Y19oug_compress() {
             FS = "[:;]";
             pmin = exp(minlogprob);
         }
-        /^: deleted:0;/ { next; }
+        /^: deleted:[0-9]+;/ { next; }
         length($0) < 4096 && $2 > 1000 {
             df = $0;
             sub("^[^;]*;", "", df);
@@ -422,16 +422,17 @@ _scd_Y19oug_match() {
                 FS = "[:;]";
                 pmin = exp(minlogprob);
             }
-            /^: deleted:0;/ {
+            /^: deleted:[0-9]+;/ {
                 df = $0;
                 sub("^[^;]*;", "", df);
-                delete ptot[df];
+                dirs_deleted[df] = 1
                 next;
             }
             length($0) < 4096 && $2 > 0 {
                 df = $0;
                 sub("^[^;]*;", "", df);
                 if (!df)  next;
+                delete dirs_deleted[df];
                 dp = df;
                 while (!(dp in ptot)) {
                     ptot[dp] = pmin;
@@ -443,7 +444,13 @@ _scd_Y19oug_match() {
                 prob = (tau < minlogprob) ? pmin : exp(tau);
                 ptot[df] += prob;
             }
-            END { for (di in ptot)  { print di; print ptot[di]; } }
+            END {
+                for (di in ptot) {
+                    if (di in dirs_deleted)  continue;
+                    print di;
+                    print ptot[di];
+                }
+            }
             '
         )"}
     )
@@ -488,7 +495,7 @@ _scd_Y19oug_match() {
     done
     dmatching=( $m )
     if [[ -n ${dirsdeleted} ]]; then
-        print -lr -- ": deleted:0;"${^${(o)dirsdeleted}} >> $SCD_HISTFILE
+        print -lr -- ": deleted:${EPOCHSECONDS};"${^${(o)dirsdeleted}} >> $SCD_HISTFILE
     fi
 }
 
