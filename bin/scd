@@ -57,7 +57,7 @@ if [[ ${OSTYPE} == darwin* ]]; then
     PWDCASECORRECT=false
 fi
 
-local MATCH
+local MATCH MBEGIN MEND
 local a d m p i threshold
 local opt_help opt_add opt_unindex opt_recursive opt_verbose
 local opt_alias opt_unalias opt_all opt_push opt_list
