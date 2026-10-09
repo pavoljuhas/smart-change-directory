@@ -368,6 +368,8 @@ _scd_Y19oug_action() {
 # Select and order indexed directories by matching command-line patterns.
 # Set global arrays dmatching and drank.
 _scd_Y19oug_match() {
+    local MATCH MBEGIN MEND
+    local -a plain_args
     ## single argument that is an alias, existing directory or a file path
     if [[ -z $opt_all && $# == 1 && $1 != ./* ]] && \
         [[ -d ${d::=${nameddirs[$1]}} || -d ${d::=$1} || \
@@ -409,11 +411,15 @@ _scd_Y19oug_match() {
     # support suffix ":" to match over the tail component.
     argv=( ${argv/(#m)*?:(#e)/${MATCH[1,-2]}[^/]#(#e)} )
 
+    # determine the longest plain string argument if any
+    plain_args=( ${(M)argv:#[[:alnum:]_/.,@-]##} )
+    plain_args=( ${${(O)${plain_args//(#m)*/${MATCH//?/x}:${MATCH}}}#x#:} )
+
     # calculate rank of all directories in SCD_HISTFILE and store it in drank.
     # include a dummy entry to avoid issues with splitting an empty string.
     [[ -s $SCD_HISTFILE ]] && drank=( ${(f)"$(
         print -l /dev/null -10
-        <$SCD_HISTFILE \
+        fgrep -i "${plain_args[1]}" $SCD_HISTFILE |
         awk -v epochseconds=$EPOCHSECONDS \
             -v meanlife=$SCD_MEANLIFE \
             -v minlogprob=$MINLOGPROB \
